@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { fetchChannelVideos, YouTubeVideo } from '@/lib/youtube';
 import ScrambleText from './ScrambleText';
-import { Instagram, Youtube, Linkedin, ExternalLink } from 'lucide-react';
+import { Instagram, Youtube, Linkedin, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const socialIcons: Record<string, any> = {
     Instagram: Instagram,
@@ -19,20 +19,68 @@ const ContentCreationSection = () => {
 
     const [videos, setVideos] = useState<YouTubeVideo[]>([]);
     const [loading, setLoading] = useState(true);
+    const scrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         (async () => {
-            const fetched = await fetchChannelVideos();
-            setVideos(fetched);
-            setLoading(false);
+            try {
+                const fetched = await fetchChannelVideos();
+                setVideos(fetched);
+            } catch (err) {
+                console.warn("Failed to load channel videos:", err);
+            } finally {
+                setLoading(false);
+            }
         })();
     }, []);
 
-    const duplicated = videos.length ? [...videos, ...videos, ...videos] : [];
+    useEffect(() => {
+        if (scrollRef.current && videos.length > 0) {
+            const el = scrollRef.current;
+            const setWidth = el.scrollWidth / 6;
+            if (el.scrollLeft === 0 && setWidth > 0) {
+                el.scrollLeft = setWidth * 2;
+            }
+        }
+    }, [videos]);
+
+    const handleScroll = (direction: 'left' | 'right') => {
+        if (scrollRef.current) {
+            const el = scrollRef.current;
+            const { scrollLeft, clientWidth, scrollWidth } = el;
+            const scrollAmount = clientWidth * 0.75;
+            const setWidth = scrollWidth / 6;
+
+            if (direction === 'right') {
+                let currentPos = scrollLeft;
+                if (currentPos + scrollAmount >= setWidth * 4) {
+                    currentPos = currentPos - (setWidth * 2);
+                    el.scrollLeft = currentPos;
+                }
+                el.scrollTo({
+                    left: currentPos + scrollAmount,
+                    behavior: 'smooth'
+                });
+            } else {
+                let currentPos = scrollLeft;
+                if (currentPos - scrollAmount <= setWidth) {
+                    currentPos = currentPos + (setWidth * 2);
+                    el.scrollLeft = currentPos;
+                }
+                el.scrollTo({
+                    left: currentPos - scrollAmount,
+                    behavior: 'smooth'
+                });
+            }
+        }
+    };
+
+    const duplicated = videos.length ? [...videos, ...videos, ...videos, ...videos, ...videos, ...videos] : [];
+    const durationSeconds = Math.max(videos.length * 6, 45);
 
     return (
         <section className="relative py-16 bg-transparent z-10 overflow-hidden w-full">
-            <div className="flex flex-col gap-16 items-center w-full">
+            <div className="flex flex-col gap-12 items-center w-full">
                 <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto px-6 items-center text-center relative z-10">
                     <h2 className="text-5xl md:text-8xl font-heading font-black text-white uppercase tracking-tighter leading-none">
                         <ScrambleText text="Bound By Code" triggerOnView speed={0.22} />
@@ -58,42 +106,66 @@ const ContentCreationSection = () => {
                         No videos available right now
                     </div>
                 ) : (
-                    <div className="w-full flex overflow-hidden relative group py-4 z-10">
-                        <div className="absolute left-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-r from-black to-transparent z-20 pointer-events-none" />
-                        <div className="absolute right-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-l from-black to-transparent z-20 pointer-events-none" />
-
-                        <motion.div
-                            key={videos.length}
-                            className="flex gap-4 md:gap-6 px-4"
-                            animate={{ x: ["0%", "-50%"] }}
-                            transition={{ duration: Math.max(duplicated.length * 3.5, 12), ease: "linear", repeat: Infinity }}
-                        >
-                            {duplicated.map((video, idx) => (
-                                <a
-                                    key={idx}
-                                    href={video.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex-shrink-0 w-[280px] md:w-[380px] flex flex-col gap-3 border border-white/10 bg-black/60 p-4 hover:border-red-600 transition-colors group/card"
+                    <div className="w-full flex flex-col gap-4 relative z-10">
+                        {/* Scroll Controls bar */}
+                        <div className="max-w-7xl mx-auto w-full px-6 flex items-center justify-between">
+                            <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-white/50">
+                                Hover to Pause · Swipe or Use Arrows to Browse ({videos.length} Videos)
+                            </span>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => handleScroll('left')}
+                                    aria-label="Scroll left"
+                                    className="p-2 border border-white/10 bg-black/60 hover:border-red-500 hover:text-red-500 text-white/70 transition-colors rounded-sm"
                                 >
-                                    <div className="relative aspect-[16/9] w-full overflow-hidden border border-white/10">
-                                        <img
-                                            src={video.thumbnail}
-                                            alt={video.title}
-                                            loading="lazy"
-                                            className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-700"
-                                        />
-                                    </div>
-                                    <h3 className="text-xs md:text-sm font-heading font-black uppercase leading-tight group-hover/card:text-red-500 transition-colors line-clamp-2">
-                                        <ScrambleText text={video.title} triggerOnView speed={0.14} className="text-current" />
-                                    </h3>
-                                    <div className="text-[10px] font-mono text-red-500 uppercase mt-auto tracking-widest flex items-center justify-between">
-                                        <ScrambleText text="Watch on YouTube" triggerOnView speed={0.2} className="text-current" />
-                                        <span>↗</span>
-                                    </div>
-                                </a>
-                            ))}
-                        </motion.div>
+                                    <ChevronLeft size={16} />
+                                </button>
+                                <button
+                                    onClick={() => handleScroll('right')}
+                                    aria-label="Scroll right"
+                                    className="p-2 border border-white/10 bg-black/60 hover:border-red-500 hover:text-red-500 text-white/70 transition-colors rounded-sm"
+                                >
+                                    <ChevronRight size={16} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Interactive Marquee Container */}
+                        <div className="w-full flex overflow-x-auto no-scroll relative group py-4 z-10 scroll-smooth" ref={scrollRef}>
+                            <div className="absolute left-0 top-0 bottom-0 w-12 md:w-24 bg-gradient-to-r from-black to-transparent z-20 pointer-events-none" />
+                            <div className="absolute right-0 top-0 bottom-0 w-12 md:w-24 bg-gradient-to-l from-black to-transparent z-20 pointer-events-none" />
+
+                            <div
+                                className="animate-youtube-marquee gap-4 md:gap-6 px-4"
+                                style={{ '--marquee-duration': `${durationSeconds}s` } as React.CSSProperties}
+                            >
+                                {duplicated.map((video, idx) => (
+                                    <a
+                                        key={`${video.id}-${idx}`}
+                                        href={video.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex-shrink-0 w-[280px] md:w-[380px] flex flex-col gap-3 border border-white/10 bg-black/60 p-4 hover:border-red-600 hover:bg-neutral-950 transition-all group/card rounded-xl shadow-lg"
+                                    >
+                                        <div className="relative aspect-[16/9] w-full overflow-hidden border border-white/10 rounded-lg">
+                                            <img
+                                                src={video.thumbnail}
+                                                alt={video.title}
+                                                loading="lazy"
+                                                className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-700"
+                                            />
+                                        </div>
+                                        <h3 className="text-xs md:text-sm font-heading font-black uppercase leading-tight group-hover/card:text-red-500 transition-colors line-clamp-2">
+                                            {video.title}
+                                        </h3>
+                                        <div className="text-[10px] font-mono text-red-500 uppercase mt-auto tracking-widest flex items-center justify-between">
+                                            <span>Watch on YouTube</span>
+                                            <span>↗</span>
+                                        </div>
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 )}
 

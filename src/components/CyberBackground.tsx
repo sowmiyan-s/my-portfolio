@@ -1,6 +1,7 @@
 import React, { useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import WebGLErrorBoundary from './WebGLErrorBoundary';
 
 const ParticleField = () => {
     const count = 1000;
@@ -52,16 +53,32 @@ const ParticleField = () => {
         </points>
     );
 };
+
+const CyberCssFallback = () => (
+    <div className="fixed inset-0 bg-black pointer-events-none z-0 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(239,68,68,0.12)_0%,transparent_75%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_4px]" />
+    </div>
+);
+
 const CyberBackground = () => {
     return (
         <div id="canvas-container">
-            <Canvas camera={{ position: [0, 5, 20], fov: 75 }}>
-                <ambientLight intensity={0.5} />
-                <ParticleField />
-            </Canvas>
-            <div className="fixed top-0 left-0 w-full h-[1px] bg-red-600/50 animate-scan-line z-50" />
+            <WebGLErrorBoundary fallback={<CyberCssFallback />}>
+                <Canvas
+                    camera={{ position: [0, 5, 20], fov: 75 }}
+                    gl={{ powerPreference: 'low-power', antialias: false, failIfMajorPerformanceCaveat: false }}
+                    onCreated={({ gl }) => {
+                        gl.setClearColor('#000000', 0);
+                    }}
+                >
+                    <ambientLight intensity={0.5} />
+                    <ParticleField />
+                </Canvas>
+            </WebGLErrorBoundary>
         </div>
     );
 };
 
 export default CyberBackground;
+

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { fetchRepos, GitHubRepo } from '@/lib/github';
-import { supabase } from '@/integrations/supabase/client';
+import { fetchHiddenProjectIds, fetchFeaturedProjects } from '@/lib/projectSettings';
 import { formatRepoName } from '@/lib/formatRepo';
 import { useNavigate } from 'react-router-dom';
 import { useRealtimeRefetch } from '@/hooks/useRealtimeRefetch';
@@ -18,13 +18,12 @@ const PopularProjectsSlider = () => {
 
     const load = useCallback(async () => {
         try {
-            const [repos, hiddenRes, featuredRes] = await Promise.all([
+            const [repos, hidden, featured] = await Promise.all([
                 fetchRepos(),
-                supabase.from('hidden_projects').select('github_repo_id'),
-                supabase.from('featured_projects').select('github_repo_id, position').order('position'),
+                fetchHiddenProjectIds(),
+                fetchFeaturedProjects(),
             ]);
-            const hidden = (hiddenRes.data ?? []).map((r: any) => r.github_repo_id);
-            const featuredIds = (featuredRes.data ?? []).map((r: any) => r.github_repo_id);
+            const featuredIds = featured.map(f => f.id);
             const visible = repos.filter(r => !hidden.includes(r.id));
 
             let final: GitHubRepo[];
@@ -43,8 +42,13 @@ const PopularProjectsSlider = () => {
         }
     }, []);
 
-    useEffect(() => { load(); }, [load]);
+    useEffect(() => {
+        load();
+        window.addEventListener('portfolio-config-changed', load);
+        return () => window.removeEventListener('portfolio-config-changed', load);
+    }, [load]);
     useRealtimeRefetch(['hidden_projects', 'featured_projects'], load);
+
 
 
     useEffect(() => {
@@ -90,61 +94,58 @@ const PopularProjectsSlider = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                    className="relative w-full border border-white/10 bg-black overflow-hidden group min-h-[420px]"
+                    className="relative w-full border border-white/10 bg-neutral-950 rounded-xl overflow-hidden group shadow-2xl flex flex-col"
                 >
-                    {/* Background GitHub Opengraph Image */}
-                    <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
+                    {/* Full-width GitHub OpenGraph Image (Shows entire card left-to-right without clipping) */}
+                    <div className="relative w-full aspect-[2/1] sm:aspect-[21/9] bg-black overflow-hidden border-b border-white/10 flex items-center justify-center">
                         <img
                             src={socialImg(current.name)}
                             alt={formatRepoName(current.name)}
                             loading="lazy"
-                            className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-[1.01] transition-all duration-700"
+                            className="w-full h-full object-contain md:object-cover group-hover:scale-[1.01] transition-transform duration-700"
                             onError={(e) => {
                                 (e.currentTarget as HTMLImageElement).style.display = 'none';
                             }}
                         />
-                        {/* Dark overlays to ensure text legibility */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent md:bg-gradient-to-r md:from-black md:via-black/75 md:to-transparent" />
-                        <div className="absolute inset-0 bg-black/30" />
+                        <div className="absolute top-4 left-4 bg-red-600 text-white font-mono text-[9px] px-3 py-1 uppercase tracking-widest font-bold rounded-sm shadow-md">
+                            FEATURED PROJECT {String(index + 1).padStart(2, '0')} / {String(projects.length).padStart(2, '0')}
+                        </div>
                     </div>
 
-                    {/* Content overlayed on top of the image */}
-                    <div className="relative z-10 flex flex-col justify-between gap-6 p-8 md:p-12 min-h-[420px] select-none">
-                        <div className="flex flex-col gap-4">
-                            <span className="text-[10px] font-mono text-red-500 uppercase tracking-widest">
-                                {String(index + 1).padStart(2, '0')} / {String(projects.length).padStart(2, '0')}
-                            </span>
-                            <h3 className="text-3xl md:text-5xl font-heading font-black text-white uppercase tracking-tight leading-tight max-w-2xl">
+                    {/* Project Information & Controls Bar */}
+                    <div className="p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-black/80 backdrop-blur-md">
+                        <div className="flex flex-col gap-2 max-w-2xl">
+                            <h3 className="text-2xl md:text-4xl font-heading font-black text-white uppercase tracking-tight group-hover:text-red-500 transition-colors">
                                 {formatRepoName(current.name)}
                             </h3>
-                            <p className="text-sm md:text-base text-white/90 leading-relaxed max-w-xl">
+                            <p className="text-xs md:text-sm text-white/80 font-mono leading-relaxed">
                                 {current.description || 'No description available for this project.'}
                             </p>
-                            <div className="flex flex-wrap gap-2 text-[10px] font-mono">
+                            <div className="flex flex-wrap gap-2 text-[10px] font-mono mt-1">
                                 {current.language && (
-                                    <span className="px-2.5 py-1 border border-white/20 bg-black/60 text-white/95 uppercase tracking-widest">{current.language}</span>
+                                    <span className="px-2.5 py-1 border border-white/20 bg-white/5 text-white/90 uppercase tracking-widest rounded-sm">{current.language}</span>
                                 )}
                                 {current.stargazers_count > 0 && (
-                                    <span className="px-2.5 py-1 border border-white/20 bg-black/60 text-white/95 flex items-center gap-1">
-                                        <Star size={10} /> {current.stargazers_count}
+                                    <span className="px-2.5 py-1 border border-white/20 bg-white/5 text-white/90 flex items-center gap-1 rounded-sm">
+                                        <Star size={10} className="text-yellow-400 fill-yellow-400" /> {current.stargazers_count}
                                     </span>
                                 )}
                             </div>
                         </div>
 
-                        <div className="flex flex-wrap gap-3">
+                        <div className="flex flex-wrap items-center gap-3 shrink-0">
                             <a
                                 href={current.html_url}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="flex items-center gap-2 px-5 py-3 bg-white text-black hover:bg-red-600 hover:text-white transition-colors font-heading text-xs uppercase tracking-widest"
+                                className="flex items-center gap-2 px-5 py-3 bg-red-600 text-white hover:bg-white hover:text-black transition-all font-heading text-xs uppercase tracking-widest rounded-sm font-bold shadow-lg"
                             >
                                 <Github size={14} />
                                 View on GitHub
                             </a>
                             <button
                                 onClick={() => navigate(`/project/${current.name}`)}
-                                className="px-5 py-3 border border-white/20 hover:border-red-600 hover:text-red-500 transition-colors bg-black/20 hover:bg-black/40 font-heading text-xs uppercase tracking-widest"
+                                className="px-5 py-3 border border-white/20 hover:border-red-600 hover:text-red-500 transition-colors bg-white/5 font-heading text-xs uppercase tracking-widest rounded-sm"
                             >
                                 Details →
                             </button>

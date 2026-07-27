@@ -2,6 +2,7 @@ import React, { useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Points, PointMaterial } from '@react-three/drei';
 import * as THREE from 'three';
+import WebGLErrorBoundary from './WebGLErrorBoundary';
 
 function ParticleField() {
   const ref = useRef<THREE.Points>(null);
@@ -49,15 +50,26 @@ function ParticleField() {
   );
 }
 
+const NeuralCssFallback = () => (
+  <div className="absolute inset-0 pointer-events-none -z-10 bg-black overflow-hidden">
+    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,0,0,0.15)_0%,transparent_70%)]" />
+  </div>
+);
+
 const NeuralGrid = () => {
   return (
     <div className="absolute inset-0 pointer-events-none -z-10 bg-black">
-      <Canvas camera={{ position: [0, 0, 20], fov: 60 }}>
-        <color attach="background" args={['#000']} />
-        <fog attach="fog" args={['#000', 10, 35]} />
-        <ambientLight intensity={1} />
-        <ParticleField />
-      </Canvas>
+      <WebGLErrorBoundary fallback={<NeuralCssFallback />}>
+        <Canvas
+          camera={{ position: [0, 0, 20], fov: 60 }}
+          gl={{ powerPreference: 'low-power', antialias: false, failIfMajorPerformanceCaveat: false }}
+        >
+          <color attach="background" args={['#000']} />
+          <fog attach="fog" args={['#000', 10, 35]} />
+          <ambientLight intensity={1} />
+          <ParticleField />
+        </Canvas>
+      </WebGLErrorBoundary>
       {/* Tactical Scanlines Overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] z-10 pointer-events-none bg-[length:100%_4px,3px_100%]" />
     </div>
@@ -65,3 +77,4 @@ const NeuralGrid = () => {
 };
 
 export default NeuralGrid;
+

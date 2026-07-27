@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchRepos, GitHubRepo } from '@/lib/github';
-import { supabase } from '@/integrations/supabase/client';
+import { fetchHiddenProjectIds, fetchFeaturedProjects } from '@/lib/projectSettings';
 import { Github, ChevronRight } from 'lucide-react';
 import ScrambleText from './ScrambleText';
 
@@ -10,35 +10,38 @@ const ProjectSlideshow = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const [data, featuredRes, hiddenRes] = await Promise.all([
-          fetchRepos(),
-          supabase.from('featured_projects').select('github_repo_id'),
-          supabase.from('hidden_projects').select('github_repo_id'),
-        ]);
+  const load = useCallback(async () => {
+    try {
+      const [data, featured, hiddenIds] = await Promise.all([
+        fetchRepos(),
+        fetchFeaturedProjects(),
+        fetchHiddenProjectIds(),
+      ]);
 
-        const hiddenIds = (hiddenRes.data ?? []).map((row: any) => row.github_repo_id);
-        const featuredIds = (featuredRes.data ?? []).map((row: any) => row.github_repo_id);
-        const visibleRepos = data.filter(repo => !hiddenIds.includes(repo.id));
+      const featuredIds = featured.map((f) => f.id);
+      const visibleRepos = data.filter(repo => !hiddenIds.includes(repo.id));
 
-        let filtered = visibleRepos.filter(repo => featuredIds.includes(repo.id));
-        if (!filtered.length) {
-          filtered = visibleRepos
-            .sort((a, b) => b.stargazers_count - a.stargazers_count)
-            .slice(0, 3);
-        }
-
-        setFeaturedProjects(filtered);
-      } catch (err) {
-        console.error("Failed to fetch featured projects:", err);
-      } finally {
-        setLoading(false);
+      let filtered = visibleRepos.filter(repo => featuredIds.includes(repo.id));
+      if (!filtered.length) {
+        filtered = visibleRepos
+          .sort((a, b) => b.stargazers_count - a.stargazers_count)
+          .slice(0, 3);
       }
-    };
-    load();
+
+      setFeaturedProjects(filtered);
+    } catch (err) {
+      console.error("Failed to fetch featured projects:", err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    load();
+    window.addEventListener('portfolio-config-changed', load);
+    return () => window.removeEventListener('portfolio-config-changed', load);
+  }, [load]);
+
 
   useEffect(() => {
     if (featuredProjects.length <= 1) return;

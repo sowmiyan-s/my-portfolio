@@ -23,7 +23,7 @@ const achievements = [
 const counters = [
   { label: 'Patents Filed', value: '1' },
   { label: 'Awards Won', value: '2' },
-  { label: 'Certifications', value: '5+' },
+  { label: 'Certifications', value: `${certificatesList.length}+` },
   { label: 'Papers Published', value: '1' },
 ];
 
@@ -168,7 +168,7 @@ const AchievementsPage = () => {
                 >
                   <div className="relative aspect-[4/3] w-full overflow-hidden border border-white/5 bg-black">
                     <img 
-                      src={`/CERTIFICATE/${cert.image}`} 
+                      src={cert.image} 
                       alt={cert.name} 
                       className="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-102 transition-all duration-500" 
                     />
@@ -232,7 +232,7 @@ const AchievementsPage = () => {
             </button>
             <div className="relative aspect-[4/3] w-full overflow-hidden border border-white/5 bg-black">
               <img 
-                src={`/CERTIFICATE/${selectedCert.image}`} 
+                src={selectedCert.image} 
                 alt={selectedCert.name} 
                 className="w-full h-full object-contain" 
               />
@@ -243,7 +243,7 @@ const AchievementsPage = () => {
                 <p className="text-xs font-mono text-muted-foreground uppercase">RECORDED CERTIFICATE</p>
               </div>
               <a 
-                href={`/CERTIFICATE/${selectedCert.image}`} 
+                href={selectedCert.image} 
                 download 
                 className="px-4 py-2 border border-red-600 text-[10px] font-mono text-red-500 hover:bg-red-600 hover:text-white transition-all uppercase tracking-widest font-bold rounded-sm shrink-0"
               >

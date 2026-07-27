@@ -2,8 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 
 const CustomCursor = () => {
     const cursorRef = useRef<HTMLDivElement>(null);
-    const xLineRef = useRef<HTMLDivElement>(null);
-    const yLineRef = useRef<HTMLDivElement>(null);
     const coordsRef = useRef<HTMLDivElement>(null);
 
     // Only enable on precise-pointer devices (skip touch/mobile for perf & UX)
@@ -23,21 +21,9 @@ const CustomCursor = () => {
             
             // Core positioning
             if (cursorRef.current) cursorRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-            if (xLineRef.current) xLineRef.current.style.transform = `translate3d(0, ${y}px, 0)`;
-            if (yLineRef.current) yLineRef.current.style.transform = `translate3d(${x}px, 0, 0)`;
             
             if (coordsRef.current) {
-                // Offset coordinates to not overlap the lines
                 coordsRef.current.style.transform = `translate3d(${x + 24}px, ${y + 24}px, 0)`;
-                coordsRef.current.innerHTML = `
-                    <div class="flex flex-col gap-0.5">
-                        <span class="opacity-40">POS_DATA</span>
-                        <div class="flex gap-2 font-black">
-                            <span>X:${Math.floor(x)}</span>
-                            <span>Y:${Math.floor(y)}</span>
-                        </div>
-                    </div>
-                `;
             }
 
             const target = e.target as HTMLElement;
@@ -106,22 +92,7 @@ const CustomCursor = () => {
                 </div>
             ))}
 
-            {/* Tactical Grid Lines (Rulers) */}
-            <div 
-                ref={xLineRef} 
-                className="absolute left-0 right-0 h-[1px] bg-red-600/30 top-0 will-change-transform flex items-center"
-            >
-                {/* Visual wrapper for jitter/scaling effects */}
-                <div className={`w-full h-full bg-[repeating-linear-gradient(90deg,transparent,transparent_20px,rgba(255,0,0,0.5)_20px,rgba(255,0,0,0.5)_21px)] transition-transform duration-200 ${isClicking ? 'translate-x-[2px]' : ''}`} />
-            </div>
-            
-            <div 
-                ref={yLineRef} 
-                className="absolute top-0 bottom-0 w-[1px] bg-red-600/30 left-0 will-change-transform flex justify-center"
-            >
-                {/* Visual wrapper for jitter/scaling effects */}
-                <div className={`h-full w-full bg-[repeating-linear-gradient(0deg,transparent,transparent_20px,rgba(255,0,0,0.5)_20px,rgba(255,0,0,0.5)_21px)] transition-transform duration-200 ${isClicking ? 'translate-y-[2px]' : ''}`} />
-            </div>
+            {/* Targeting Reticle & Coordinates (Clean reticle without full-screen lines) */}
 
             {/* Targeting Reticle (The "Box") */}
             <div 

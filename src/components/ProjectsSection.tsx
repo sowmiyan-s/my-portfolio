@@ -4,12 +4,13 @@ import { useRealtimeRefetch } from "@/hooks/useRealtimeRefetch";
 import { motion, useScroll, useSpring, useTransform, AnimatePresence } from "framer-motion";
 import { Github, Star, GitFork, Terminal } from "lucide-react";
 import { fetchRepos } from "@/lib/github";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchHiddenProjectIds } from "@/lib/projectSettings";
 import { formatRepoName } from "@/lib/formatRepo";
 import RadarLoader from "./RadarLoader";
 import ScrambleText from "./ScrambleText";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
+
 
 const parseInlineMarkdown = (text: string): string => {
   let html = text;
@@ -307,11 +308,10 @@ const ProjectsSection = () => {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [data, hiddenRes] = await Promise.all([
+      const [data, hiddenIds] = await Promise.all([
         fetchRepos(),
-        supabase.from('hidden_projects').select('github_repo_id'),
+        fetchHiddenProjectIds(),
       ]);
-      const hiddenIds = (hiddenRes.data ?? []).map((r: any) => r.github_repo_id);
       const visible = data.filter((r) => !hiddenIds.includes(r.id));
 
       const formatted = visible
@@ -343,8 +343,13 @@ const ProjectsSection = () => {
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+    window.addEventListener("portfolio-config-changed", load);
+    return () => window.removeEventListener("portfolio-config-changed", load);
+  }, [load]);
   useRealtimeRefetch(['hidden_projects'], load);
+
 
   // Measure dot locations relative to parent container
   const updateDots = useCallback(() => {

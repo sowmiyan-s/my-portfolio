@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, ShieldAlert, Terminal, X, RefreshCw, Trophy, Sparkles, Volume2, VolumeX, Download, Mail, Phone, Copy, RotateCw, AlertTriangle, Monitor, Wifi, Clock } from 'lucide-react';
+import { Settings, ShieldAlert, Terminal, X, RefreshCw, Volume2, VolumeX, Sparkles } from 'lucide-react';
 
 const themes = [
   { id: 'red', name: 'CYBER_RED', color: '#ef4444' },
@@ -10,49 +10,47 @@ const themes = [
   { id: 'yellow', name: 'GOLD_ORANGE', color: '#f59e0b' }
 ];
 
+// Secret themes — NOT in the settings panel, only unlockable via easter eggs
+const secretThemes: Record<string, { name: string; color: string }> = {
+  neon: { name: 'NEON_PINK', color: '#ec4899' },
+  midnight: { name: 'MIDNIGHT_TEAL', color: '#06b6d4' },
+  phantom: { name: 'PHANTOM_MODE', color: '#f43f5e' },
+};
+
 const CANDIDATE_CODES = ["A4B1", "E9D2", "B6F2", "D1A9", "9F2C", "2C4F", "F3E2", "5A8D", "7C1E", "3F8A", "8D2C", "B6E9"];
 
 const KONAMI_CODE = [
-  "arrowup", "arrowup", 
-  "arrowdown", "arrowdown", 
-  "arrowleft", "arrowright", 
-  "arrowleft", "arrowright", 
+  "arrowup", "arrowup",
+  "arrowdown", "arrowdown",
+  "arrowleft", "arrowright",
+  "arrowleft", "arrowright",
   "b", "a"
 ];
 
 const RESUME_URL = "https://drive.google.com/file/d/1NmangaAFo0eGT-KAsZi4VWOm6zI-KPk6/view?usp=sharing";
 
-// Play dynamic retro synths via Web Audio API without audio files
+// ─── Audio Helpers ───────────────────────────────────────────────────────────
 const playSynthBeep = (freq = 800, duration = 0.08, type: OscillatorType = "sine") => {
-  if (typeof window !== 'undefined' && localStorage.getItem('sowmiyan-portfolio-audio-muted') === 'true') {
-    return;
-  }
+  if (typeof window !== 'undefined' && localStorage.getItem('sowmiyan-portfolio-audio-muted') === 'true') return;
   try {
-    const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const osc = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
-    
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
     osc.type = type;
-    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-    
-    gainNode.gain.setValueAtTime(0.04, audioCtx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
-    
-    osc.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-    
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(0.04, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
     osc.start();
-    osc.stop(audioCtx.currentTime + duration);
-  } catch (e) {
-    console.warn("Web Audio API warning:", e);
-  }
+    osc.stop(ctx.currentTime + duration);
+  } catch {}
 };
 
 const playWinChime = () => {
-  setTimeout(() => playSynthBeep(400, 0.15, "triangle"), 0);
-  setTimeout(() => playSynthBeep(600, 0.15, "triangle"), 100);
-  setTimeout(() => playSynthBeep(800, 0.15, "triangle"), 200);
-  setTimeout(() => playSynthBeep(1200, 0.3, "sine"), 300);
+  [400, 600, 800, 1200].forEach((f, i) =>
+    setTimeout(() => playSynthBeep(f, i === 3 ? 0.3 : 0.15, i === 3 ? "sine" : "triangle"), i * 100)
+  );
 };
 
 const playLoseBuzz = () => {
@@ -60,393 +58,425 @@ const playLoseBuzz = () => {
   setTimeout(() => playSynthBeep(90, 0.35, "sawtooth"), 100);
 };
 
-const playGodModeChime = () => {
-  const steps = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
-  steps.forEach((freq, index) => {
-    setTimeout(() => playSynthBeep(freq, 0.25, "triangle"), index * 80);
-  });
-};
-
-const playLaserSound = () => {
-  try {
-    const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const osc = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
-    osc.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-    
-    osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.5);
-    gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.5);
-    
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.5);
-  } catch (e) {
-    console.warn("Laser audio error:", e);
-  }
-};
-
 const getMatchCount = (guess: string, target: string) => {
   let count = 0;
-  for (let i = 0; i < 4; i++) {
-    if (guess[i] === target[i]) count++;
-  }
+  for (let i = 0; i < 4; i++) if (guess[i] === target[i]) count++;
   return count;
 };
 
+// ─── Visual Effect: Confetti / Fireworks Particle Explosion ──────────────────
+function spawnConfetti(count = 150) {
+  const container = document.createElement('div');
+  container.style.cssText = 'position:fixed;inset:0;z-index:99999;pointer-events:none;overflow:hidden;';
+  document.body.appendChild(container);
+
+  const colors = ['#ef4444', '#3b82f6', '#10b981', '#a855f7', '#f59e0b', '#ec4899', '#06b6d4', '#ffffff', '#facc15', '#fb923c'];
+  for (let i = 0; i < count; i++) {
+    const particle = document.createElement('div');
+    const size = Math.random() * 8 + 4;
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const startX = 40 + Math.random() * 20; // center-ish
+    const driftX = (Math.random() - 0.5) * 200;
+    const duration = 1.5 + Math.random() * 2;
+    const delay = Math.random() * 0.4;
+    const shape = Math.random() > 0.5 ? '50%' : '0';
+
+    particle.style.cssText = `
+      position:absolute;
+      left:${startX}%;
+      top:40%;
+      width:${size}px;
+      height:${size}px;
+      background:${color};
+      border-radius:${shape};
+      opacity:1;
+      animation: confetti-burst ${duration}s ${delay}s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+      --drift-x: ${driftX}px;
+      --rotation: ${Math.random() * 720 - 360}deg;
+    `;
+    container.appendChild(particle);
+  }
+  setTimeout(() => container.remove(), 4000);
+}
+
+// ─── Visual Effect: Matrix Rain ──────────────────────────────────────────────
+function startMatrixRain(durationMs = 8000) {
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:fixed;inset:0;z-index:99998;pointer-events:none;';
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  document.body.appendChild(canvas);
+
+  const ctx = canvas.getContext('2d')!;
+  const fontSize = 14;
+  const columns = Math.floor(canvas.width / fontSize);
+  const drops = new Array(columns).fill(1);
+  const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEF';
+
+  let animId: number;
+  const draw = () => {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#0f0';
+    ctx.font = `${fontSize}px monospace`;
+
+    for (let i = 0; i < drops.length; i++) {
+      const char = chars[Math.floor(Math.random() * chars.length)];
+      ctx.fillStyle = Math.random() > 0.95 ? '#fff' : `hsl(${120 + Math.random() * 20}, 100%, ${40 + Math.random() * 30}%)`;
+      ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    }
+    animId = requestAnimationFrame(draw);
+  };
+
+  draw();
+  setTimeout(() => {
+    cancelAnimationFrame(animId);
+    canvas.style.transition = 'opacity 1s';
+    canvas.style.opacity = '0';
+    setTimeout(() => canvas.remove(), 1000);
+  }, durationMs);
+}
+
+// ─── Visual Effect: Rainbow Cycling Theme ────────────────────────────────────
+let rainbowInterval: ReturnType<typeof setInterval> | null = null;
+
+function startRainbowMode() {
+  if (rainbowInterval) return; // already running
+  let hue = 0;
+  document.documentElement.setAttribute('data-theme', 'rainbow');
+  rainbowInterval = setInterval(() => {
+    hue = (hue + 2) % 360;
+    document.documentElement.style.setProperty('--theme-color', `${hue} 100% 50%`);
+  }, 50);
+}
+
+function stopRainbowMode() {
+  if (rainbowInterval) {
+    clearInterval(rainbowInterval);
+    rainbowInterval = null;
+    document.documentElement.style.removeProperty('--theme-color');
+  }
+}
+
+// ─── Visual Effect: Gravity Fall ─────────────────────────────────────────────
+function triggerGravity() {
+  const sections = document.querySelectorAll('section, header, footer, nav');
+  sections.forEach((el, i) => {
+    const htmlEl = el as HTMLElement;
+    htmlEl.style.transition = `transform ${0.5 + i * 0.1}s cubic-bezier(0.55, 0, 1, 0.45)`;
+    htmlEl.style.transform = `translateY(${window.innerHeight + 200}px) rotate(${(Math.random() - 0.5) * 30}deg)`;
+  });
+  setTimeout(() => {
+    sections.forEach((el) => {
+      const htmlEl = el as HTMLElement;
+      htmlEl.style.transition = 'transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)';
+      htmlEl.style.transform = '';
+    });
+  }, 2500);
+}
+
+// ─── Component ───────────────────────────────────────────────────────────────
 const ThemeAndEasterEgg = () => {
   const [panelOpen, setPanelOpen] = useState(false);
   const [activeTheme, setActiveTheme] = useState('red');
   const [typedKeysBuffer, setTypedKeysBuffer] = useState("");
   const konamiIndexRef = useRef(0);
 
-  // Easter Egg Game states
+  // Hacking Game
   const [gameOpen, setGameOpen] = useState(false);
   const [secretCode, setSecretCode] = useState("");
   const [triesLeft, setTriesLeft] = useState(5);
   const [gameStatus, setGameStatus] = useState<'playing' | 'won' | 'lost'>('playing');
   const [log, setLog] = useState<string[]>([]);
 
-  // Modals and Alerts
-  const [godModeOpen, setGodModeOpen] = useState(false);
-  const [secretTrophyOpen, setSecretTrophyOpen] = useState(false);
+  // Alerts & Audio
   const [alert, setAlert] = useState<{ title: string; desc: string } | null>(null);
-  
-  // Audio state
   const [audioMuted, setAudioMuted] = useState(false);
-  
-  // Telemetry session data
-  const [telemetry, setTelemetry] = useState({
-    browser: "Chrome/V8 Engine",
-    os: "Windows 11 NT",
-    latency: "12ms",
-    connection: "4G/LTE",
-    uptime: 0
-  });
 
-  const [copiedEmail, setCopiedEmail] = useState(false);
+  // Reward state
+  const [phantomUnlocked, setPhantomUnlocked] = useState(false);
 
-  // Get session stats & start uptime counter
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTelemetry(prev => ({ ...prev, uptime: prev.uptime + 1 }));
-    }, 1000);
-
-    if (typeof navigator !== 'undefined') {
-      const ua = navigator.userAgent;
-      let osName = "Windows NT";
-      if (ua.indexOf("Win") !== -1) osName = "Windows OS";
-      if (ua.indexOf("Mac") !== -1) osName = "macOS UNIX";
-      if (ua.indexOf("Linux") !== -1) osName = "Linux System";
-      if (ua.indexOf("Android") !== -1) osName = "Android Linux";
-      if (ua.indexOf("like Mac") !== -1) osName = "iOS Apple";
-
-      let browserName = "Chrome V8";
-      if (ua.indexOf("Chrome") !== -1) browserName = "Chrome V8";
-      else if (ua.indexOf("Firefox") !== -1) browserName = "Firefox Gecko";
-      else if (ua.indexOf("Safari") !== -1) browserName = "Safari WebKit";
-      else if (ua.indexOf("Edge") !== -1) browserName = "Edge Chromium";
-
-      setTelemetry(prev => ({
-        ...prev,
-        browser: browserName,
-        os: osName,
-        latency: `${Math.floor(Math.random() * 12) + 6}ms`,
-        connection: (navigator as any).connection?.effectiveType?.toUpperCase() || "BROADBAND"
-      }));
-    }
-
-    return () => clearInterval(timer);
-  }, []);
-
-  // Load persistent theme
+  // Load persistent state
   useEffect(() => {
     const saved = localStorage.getItem('sowmiyan-portfolio-theme') || 'red';
     setActiveTheme(saved);
     document.documentElement.setAttribute('data-theme', saved);
     setAudioMuted(localStorage.getItem('sowmiyan-portfolio-audio-muted') === 'true');
+    setPhantomUnlocked(localStorage.getItem('sowmiyan-phantom-unlocked') === 'true');
   }, []);
 
-  const showAlert = (title: string, desc: string) => {
+  const showAlert = useCallback((title: string, desc: string) => {
     setAlert({ title, desc });
-    // Clear alert after 4 seconds
     const timer = setTimeout(() => setAlert(null), 4000);
     return () => clearTimeout(timer);
-  };
+  }, []);
 
-  // Keyboard shortcut listener ("hack" and Konami Code)
+  const changeTheme = useCallback((themeId: string) => {
+    stopRainbowMode();
+    setActiveTheme(themeId);
+    localStorage.setItem('sowmiyan-portfolio-theme', themeId);
+    document.documentElement.setAttribute('data-theme', themeId);
+    const freqs: Record<string, number> = { red: 500, blue: 600, green: 700, purple: 800, yellow: 900, neon: 1000, midnight: 550, phantom: 666 };
+    playSynthBeep(freqs[themeId] || 600, 0.08, "triangle");
+  }, []);
+
+  const startHackingGame = useCallback(() => {
+    const target = CANDIDATE_CODES[Math.floor(Math.random() * CANDIDATE_CODES.length)];
+    setSecretCode(target);
+    setTriesLeft(5);
+    setGameStatus('playing');
+    setLog(["INITIALIZING ACCESS OVERRIDE...", "DECRYPT SYSTEM FIREWALL PASSWORD TO GAIN ROOT ACCESS.", "MATCH 4/4 CHARACTERS TO BREACH THE FIREWALL."]);
+    setGameOpen(true);
+  }, []);
+
+  const handleGuess = useCallback((code: string) => {
+    if (gameStatus !== 'playing') return;
+
+    if (code === secretCode) {
+      playWinChime();
+      setGameStatus('won');
+      setLog(prev => [...prev, `> ${code}`, "████ ACCESS GRANTED ████", "FIREWALL OVERRIDDEN. PHANTOM THEME UNLOCKED.", "YOU HAVE EARNED THE RAREST SECRET IN THIS PORTFOLIO."]);
+
+      // Unlock Phantom theme as reward
+      localStorage.setItem('sowmiyan-phantom-unlocked', 'true');
+      setPhantomUnlocked(true);
+
+      // Spectacular celebration
+      setTimeout(() => {
+        spawnConfetti(200);
+        changeTheme('phantom');
+        showAlert("PHANTOM_UNLOCKED", "SECRET 'PHANTOM' THEME ACTIVATED. YOU'VE EARNED THE RAREST REWARD.");
+      }, 600);
+    } else {
+      const matches = getMatchCount(code, secretCode);
+      const remaining = triesLeft - 1;
+      setTriesLeft(remaining);
+
+      if (remaining <= 0) {
+        playLoseBuzz();
+        setGameStatus('lost');
+        setLog(prev => [...prev, `> ${code}`, "╳ ACCESS DENIED ╳ LOCKOUT ACTIVATED.", `CORRECT KEY WAS: ${secretCode}`]);
+      } else {
+        playSynthBeep(250, 0.15, "sawtooth");
+        setLog(prev => [
+          ...prev,
+          `> ${code}`,
+          `[DENIED] MATCHED: ${matches}/4 CHARACTERS.`,
+          `WARNING // ${remaining} ATTEMPTS REMAINING.`
+        ]);
+      }
+    }
+  }, [gameStatus, secretCode, triesLeft, changeTheme, showAlert]);
+
+  // ─── Keyboard Listener ───────────────────────────────────────────────────
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
-      
-      // 1. Check Konami Code
+
+      // Konami Code → Fireworks + Confetti Explosion
       if (key === KONAMI_CODE[konamiIndexRef.current]) {
         konamiIndexRef.current += 1;
         if (konamiIndexRef.current === KONAMI_CODE.length) {
-          triggerGodMode();
+          // Epic celebration
+          [400, 500, 600, 700, 800, 900, 1000, 1200].forEach((f, i) =>
+            setTimeout(() => playSynthBeep(f, 0.2, "triangle"), i * 60)
+          );
+          spawnConfetti(300);
+          showAlert("GOD_MODE_ACTIVATED", "KONAMI CODE ACCEPTED. REALITY ENGINE OVERRIDDEN.");
           konamiIndexRef.current = 0;
         }
       } else {
         konamiIndexRef.current = key === KONAMI_CODE[0] ? 1 : 0;
       }
 
-      // 2. Check general keyboard shortcut cheat codes
-      if (/^[a-zA-Z]$/.test(e.key) || e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "ArrowLeft" || e.key === "ArrowRight") {
+      // Cheat Code Buffer
+      if (/^[a-zA-Z]$/.test(e.key) || e.key.startsWith("Arrow")) {
         setTypedKeysBuffer((prev) => {
           const next = (prev + key).slice(-20);
-          
+
+          // ── rainbow: Secret cycling rainbow theme ──
+          if (next.endsWith("rainbow")) {
+            startRainbowMode();
+            spawnConfetti(100);
+            showAlert("RAINBOW_OVERRIDE", "SECRET CHROMATIC THEME ENGAGED. CYCLING ALL SPECTRUMS.");
+            return "";
+          }
+
+          // ── neon: Secret neon pink theme ──
+          if (next.endsWith("neon")) {
+            changeTheme('neon');
+            showAlert("NEON_UNLOCKED", "SECRET NEON PINK THEME ACTIVATED. NOT IN YOUR SETTINGS.");
+            return "";
+          }
+
+          // ── midnight: Secret midnight teal theme ──
+          if (next.endsWith("midnight")) {
+            changeTheme('midnight');
+            showAlert("MIDNIGHT_UNLOCKED", "SECRET MIDNIGHT TEAL THEME ACTIVATED. DEEP OCEAN MODE.");
+            return "";
+          }
+
+          // ── matrix: Full-screen Matrix digital rain ──
+          if (next.endsWith("matrix")) {
+            changeTheme("green");
+            startMatrixRain(8000);
+            showAlert("MATRIX_INITIATED", "WAKE UP, NEO... THE MATRIX HAS YOU.");
+            return "";
+          }
+
+          // ── hack: Launch the decryption game ──
           if (next.endsWith("hack")) {
             playSynthBeep(900, 0.2, "sawtooth");
             startHackingGame();
             return "";
           }
-          if (next.endsWith("matrix")) {
-            changeTheme("green");
-            playSynthBeep(600, 0.5, "sine");
-            showAlert("SYSTEM_OVERRIDE", "THE MATRIX HAS YOU. FOLLOW THE WHITE RABBIT...");
+
+          // ── gravity: Everything falls down ──
+          if (next.endsWith("gravity")) {
+            playSynthBeep(200, 0.5, "sawtooth");
+            triggerGravity();
+            showAlert("GRAVITY_FAIL", "GRAVITATIONAL ANOMALY DETECTED. STRUCTURAL INTEGRITY COMPROMISED.");
             return "";
           }
-          if (next.endsWith("redpill")) {
-            changeTheme("red");
-            playSynthBeep(350, 0.6, "sawtooth");
-            showAlert("SYSTEM_RESTORED", "RED PILL TAKEN. WELCOME BACK TO THE COLD REALITY.");
-            return "";
-          }
-          if (next.endsWith("bluepill")) {
-            changeTheme("blue");
-            playSynthBeep(880, 0.4, "sine");
-            showAlert("SYSTEM_SIMULATED", "BLUE PILL TAKEN. CHOOSE YOUR COMFORTABLE ILLUSION.");
-            return "";
-          }
-          if (next.endsWith("sudo")) {
-            playLoseBuzz();
-            showAlert("SECURITY_ERROR", "SOWMIYAN IS NOT IN THE SUDOERS FILE. THIS INCIDENT WILL BE REPORTED.");
-            return "";
-          }
-          if (next.endsWith("doabarrelroll")) {
-            playSynthBeep(700, 0.4, "triangle");
-            document.body.classList.add("animate-barrel-roll");
-            showAlert("SYS_CMD_ENGAGED", "DO A BARREL ROLL // ROTATING VIEWPORT 360 DEG.");
-            setTimeout(() => {
-              document.body.classList.remove("animate-barrel-roll");
-            }, 1000);
-            return "";
-          }
-          if (next.endsWith("sound")) {
-            playLaserSound();
-            showAlert("AUDIO_PULSE_GEN", "SYNTH SLIDER ENGAGED // LASER BEAM GENERATED.");
-            return "";
-          }
-          if (next.endsWith("cheats")) {
-            playSynthBeep(750, 0.2, "sine");
-            console.table({
-              "Cheat Code": ["hack", "konami", "matrix", "redpill", "bluepill", "sudo", "sound", "doabarrelroll", "resume", "glitch", "secret"],
-              "System Action": [
-                "Launch Firewall Decryption Game",
-                "Unlock God Mode Administrative Panel",
-                "Set Green Theme & Matrix quote",
-                "Reset theme to red & reality quote",
-                "Set blue theme & simulation quote",
-                "Trigger security incident error report",
-                "Generate dynamic 8-bit laser SFX",
-                "Spin the entire viewport 360 degrees",
-                "Direct download Google Drive resume file",
-                "Trigger visual screen distortion glitch",
-                "Unlock Sowmiyan's secret trophy card"
-              ]
-            });
-            showAlert("CONSOLE_DECRYPTED", "SYSTEM CHEAT CODES DUMPED TO DEVELOPER TOOLS CONSOLE (F12).");
-            return "";
-          }
-          if (next.endsWith("resume")) {
-            playSynthBeep(800, 0.3, "triangle");
-            showAlert("FILE_DOWNLOAD", "INITIATING DIRECT DOWNLOAD: SOWMIYAN_CV.PDF");
-            window.open(RESUME_URL, "_blank");
-            return "";
-          }
+
+          // ── glitch: Dramatic screen distortion ──
           if (next.endsWith("glitch")) {
             playLoseBuzz();
             document.documentElement.classList.add("glitch-filter-active");
-            showAlert("DISPLAY_FAILURE", "CRITICAL SIGNAL INTERFERENCE DETECTED.");
-            setTimeout(() => {
-              document.documentElement.classList.remove("glitch-filter-active");
-            }, 800);
+            showAlert("SIGNAL_CORRUPTION", "CRITICAL DISPLAY INTERFERENCE. SIGNAL DEGRADING.");
+            setTimeout(() => document.documentElement.classList.remove("glitch-filter-active"), 1200);
             return "";
           }
-          if (next.endsWith("secret")) {
-            playWinChime();
-            setSecretTrophyOpen(true);
-            showAlert("SECRET_UNLOCKED", "SOWMIYAN'S ELITE EASTER EGG ACCOLADE DISCOVERED!");
+
+          // ── doabarrelroll: Spin viewport ──
+          if (next.endsWith("doabarrelroll")) {
+            playSynthBeep(700, 0.4, "triangle");
+            document.body.classList.add("animate-barrel-roll");
+            showAlert("AXIS_ROTATION", "VIEWPORT ROTATING 360° ON Z-AXIS.");
+            setTimeout(() => document.body.classList.remove("animate-barrel-roll"), 1000);
             return "";
           }
+
+          // ── resume: Open resume ──
+          if (next.endsWith("resume")) {
+            playSynthBeep(800, 0.3, "triangle");
+            showAlert("FILE_ACCESSED", "INITIATING DIRECT ACCESS: SOWMIYAN_CV.PDF");
+            window.open(RESUME_URL, "_blank");
+            return "";
+          }
+
+          // ── disco: Rapid color flashing party mode ──
+          if (next.endsWith("disco")) {
+            let flash = 0;
+            const discoColors = ['red', 'blue', 'green', 'purple', 'yellow', 'neon', 'midnight'];
+            const discoInterval = setInterval(() => {
+              const themeId = discoColors[flash % discoColors.length];
+              document.documentElement.setAttribute('data-theme', themeId);
+              flash++;
+              if (flash > 20) {
+                clearInterval(discoInterval);
+                changeTheme('red');
+              }
+            }, 150);
+            spawnConfetti(80);
+            showAlert("DISCO_MODE", "PARTY PROTOCOL INITIATED. CHROMATIC OVERLOAD.");
+            return "";
+          }
+
+          // ── sudo: Security rejection ──
+          if (next.endsWith("sudo")) {
+            playLoseBuzz();
+            showAlert("SECURITY_BREACH", "SOWMIYAN IS NOT IN THE SUDOERS FILE. INCIDENT REPORTED.");
+            return "";
+          }
+
+          // ── cheats: Dump all codes to console ──
+          if (next.endsWith("cheats")) {
+            playSynthBeep(750, 0.2, "sine");
+            console.table({
+              "Code": ["hack", "konami ↑↑↓↓←→←→BA", "matrix", "rainbow", "neon", "midnight", "gravity", "glitch", "doabarrelroll", "disco", "resume", "sudo"],
+              "Effect": [
+                "🔓 Decrypt firewall game → unlocks PHANTOM theme",
+                "🎆 Massive confetti fireworks explosion",
+                "🟢 Full-screen Matrix digital rain + green theme",
+                "🌈 Secret rainbow cycling theme (not in settings)",
+                "💗 Secret neon pink theme (not in settings)",
+                "🌊 Secret midnight teal theme (not in settings)",
+                "⬇️ All sections fall with gravity + bounce back",
+                "📺 Dramatic screen signal corruption",
+                "🔄 Spin the entire page 360°",
+                "🪩 Rapid disco color flash party",
+                "📄 Open Sowmiyan's resume",
+                "🚫 Security rejection message"
+              ]
+            });
+            showAlert("CHEAT_CODES_DUMPED", "ALL SECRET CODES LOGGED TO DEVTOOLS CONSOLE (F12).");
+            return "";
+          }
+
           return next;
         });
       }
     };
+
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [showAlert, changeTheme, startHackingGame]);
 
-  // Mount global hack() function in browser developer tools
+  // ─── Developer Console hack() ──────────────────────────────────────────
   useEffect(() => {
     (window as any).hack = () => {
-      console.log("%c[OVERRIDE_TRIGGERED] Initializing mainframe bypass...", "color: #ef4444; font-weight: bold;");
+      console.log("%c[FIREWALL_BYPASS] Initializing decryption...", "color: #ef4444; font-weight: bold;");
       startHackingGame();
-      return "Mainframe decryption console initialized.";
+      return "Decryption console initialized.";
     };
+    return () => { delete (window as any).hack; };
+  }, [startHackingGame]);
 
-    return () => {
-      delete (window as any).hack;
-    };
-  }, []);
-
-  // Listen to custom cross-widget DOM events for interactive page eggs
+  // ─── Cross-component event listeners ───────────────────────────────────
   useEffect(() => {
     const handleStatusEgg = () => {
       playSynthBeep(1000, 0.3, "triangle");
-      showAlert("IDENTITY_VERIFIED", "SOWMIYAN // ADMIN_MODE ENABLED.");
+      showAlert("IDENTITY_VERIFIED", "SOWMIYAN // ADMIN CLEARANCE CONFIRMED.");
     };
-
-    const handleTriggerHacking = () => {
-      startHackingGame();
-    };
-
+    const handleTriggerHacking = () => startHackingGame();
     const handleHudAlert = (e: Event) => {
-      const customEvent = e as CustomEvent;
-      if (customEvent.detail) {
-        showAlert(customEvent.detail.title, customEvent.detail.desc);
-      }
+      const ce = e as CustomEvent;
+      if (ce.detail) showAlert(ce.detail.title, ce.detail.desc);
     };
 
     window.addEventListener('trigger-status-egg', handleStatusEgg);
     window.addEventListener('trigger-hacking-game', handleTriggerHacking);
     window.addEventListener('trigger-hud-alert', handleHudAlert);
-
     return () => {
       window.removeEventListener('trigger-status-egg', handleStatusEgg);
       window.removeEventListener('trigger-hacking-game', handleTriggerHacking);
       window.removeEventListener('trigger-hud-alert', handleHudAlert);
     };
-  }, []);
-
-  const changeTheme = (themeId: string) => {
-    setActiveTheme(themeId);
-    localStorage.setItem('sowmiyan-portfolio-theme', themeId);
-    document.documentElement.setAttribute('data-theme', themeId);
-    
-    const freqs: Record<string, number> = { red: 500, blue: 600, green: 700, purple: 800, yellow: 900 };
-    playSynthBeep(freqs[themeId] || 600, 0.08, "triangle");
-  };
-
-  const startHackingGame = () => {
-    const target = CANDIDATE_CODES[Math.floor(Math.random() * CANDIDATE_CODES.length)];
-    setSecretCode(target);
-    setTriesLeft(5);
-    setGameStatus('playing');
-    setLog(["INITIALIZING ACCESS OVERRIDE...", "DECRYPT SYSTEM FIREWALL PASSWORD TO GRANTED ROOT ACCESS."]);
-    setGameOpen(true);
-  };
-
-  const triggerGodMode = () => {
-    playGodModeChime();
-    setGodModeOpen(true);
-  };
+  }, [showAlert, startHackingGame]);
 
   const toggleAudio = () => {
     const nextMuted = !audioMuted;
     setAudioMuted(nextMuted);
     localStorage.setItem('sowmiyan-portfolio-audio-muted', nextMuted ? 'true' : 'false');
-    
-    if (!nextMuted) {
-      try {
-        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        osc.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-        gainNode.gain.setValueAtTime(0.04, audioCtx.currentTime);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.08);
-      } catch(e){}
-    }
-    
-    showAlert(
-      nextMuted ? "AUDIO_OFFLINE" : "AUDIO_ONLINE", 
-      nextMuted ? "SYSTEM AUDIO MUTED." : "SYSTEM DYNAMIC SYNTHS ENGAGED."
-    );
+    if (!nextMuted) playSynthBeep(800, 0.08, "sine");
+    showAlert(nextMuted ? "AUDIO_OFFLINE" : "AUDIO_ONLINE", nextMuted ? "SYSTEM AUDIO MUTED." : "SYNTH AUDIO SYSTEMS ENGAGED.");
   };
 
-  const handleGuess = (code: string) => {
-    if (gameStatus !== 'playing') return;
-
-    if (code === secretCode) {
-      playWinChime();
-      setGameStatus('won');
-      setLog(prev => [...prev, `> ${code}`, "ACCESS GRANTED. FIREWALL OVERRIDDEN SUCCESSFULLY.", "WELCOME TO ROOT TERMINAL SOWMIYAN S."]);
-    } else {
-      const matches = getMatchCount(code, secretCode);
-      const remaining = triesLeft - 1;
-      setTriesLeft(remaining);
-      
-      if (remaining <= 0) {
-        playLoseBuzz();
-        setGameStatus('lost');
-        setLog(prev => [...prev, `> ${code}`, "ACCESS DENIED. CODES LOCKOUT ACTIVATED.", `CORRECT SYSTEM KEY WAS: ${secretCode}`]);
-      } else {
-        playSynthBeep(250, 0.15, "sawtooth");
-        setLog(prev => [
-          ...prev, 
-          `> ${code}`, 
-          `[ACCESS DENIED] MATCHED: ${matches}/4 CHARACTERS.`,
-          `WARNING // LOCKOUT IN ${remaining} TRIES.`
-        ]);
-      }
-    }
-  };
-
-  const copyEmailToClipboard = () => {
-    navigator.clipboard.writeText("sowmisowmiyan58@gmail.com");
-    setCopiedEmail(true);
-    playSynthBeep(900, 0.08, "sine");
-    setTimeout(() => setCopiedEmail(false), 2000);
-  };
-
-  const triggerGlitchDisplay = () => {
-    playLoseBuzz();
-    document.documentElement.classList.add("glitch-filter-active");
-    setTimeout(() => {
-      document.documentElement.classList.remove("glitch-filter-active");
-    }, 700);
-  };
-
-  const triggerBarrelRollAxis = () => {
-    playSynthBeep(700, 0.4, "triangle");
-    document.body.classList.add("animate-barrel-roll");
-    setTimeout(() => {
-      document.body.classList.remove("animate-barrel-roll");
-    }, 1000);
-  };
-
-  const formatUptime = (sec: number) => {
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  };
-
-  // Check if we should render the Mainframe cockpit panel
-  const isDashboardOpen = godModeOpen || (gameOpen && gameStatus === 'won');
+  // All themes for panel (base + unlocked secrets)
+  const allPanelThemes = [
+    ...themes,
+    ...(phantomUnlocked ? [{ id: 'phantom', name: '🔒 PHANTOM', color: secretThemes.phantom.color }] : []),
+  ];
 
   return (
     <>
-      {/* Floating config panel trigger */}
+      {/* ── Settings Trigger ── */}
       <div className="fixed bottom-4 left-4 z-40 flex items-center gap-2">
         <button
-          onClick={() => {
-            setPanelOpen(!panelOpen);
-            playSynthBeep(650, 0.05, "sine");
-          }}
+          onClick={() => { setPanelOpen(!panelOpen); playSynthBeep(650, 0.05, "sine"); }}
           className="w-10 h-10 rounded-full bg-black border border-red-500/30 flex items-center justify-center text-red-500 hover:border-red-500 hover:bg-red-950/20 transition-all shadow-[0_0_12px_rgba(239,68,68,0.2)] focus:outline-none"
           title="System configuration"
         >
@@ -456,7 +486,7 @@ const ThemeAndEasterEgg = () => {
         <button
           onClick={toggleAudio}
           className="w-10 h-10 rounded-full bg-black border border-red-500/30 flex items-center justify-center text-red-500 hover:border-red-500 hover:bg-red-950/20 transition-all shadow-[0_0_12px_rgba(239,68,68,0.2)] focus:outline-none"
-          title={audioMuted ? "Unmute system audio" : "Mute system audio"}
+          title={audioMuted ? "Unmute" : "Mute"}
         >
           {audioMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
         </button>
@@ -473,53 +503,50 @@ const ThemeAndEasterEgg = () => {
                 <span className="text-[9px] font-mono text-red-500 font-bold uppercase tracking-widest flex items-center gap-1">
                   <ShieldAlert size={10} /> SYS_CONFIG // THEME
                 </span>
-                <button 
-                  onClick={() => setPanelOpen(false)}
-                  className="text-white/40 hover:text-red-500 transition-colors"
-                >
+                <button onClick={() => setPanelOpen(false)} className="text-white/40 hover:text-red-500 transition-colors">
                   <X size={12} />
                 </button>
               </div>
 
-              {/* Theme Selector list */}
               <div className="flex flex-col gap-1.5">
-                {themes.map((theme) => (
+                {allPanelThemes.map((theme) => (
                   <button
                     key={theme.id}
                     onClick={() => changeTheme(theme.id)}
                     className={`flex items-center justify-between px-3 py-1.5 border rounded-md font-mono text-[9px] uppercase tracking-wider transition-all duration-300
-                      ${activeTheme === theme.id 
-                        ? 'border-red-500 bg-red-600/10 text-white font-bold' 
+                      ${activeTheme === theme.id
+                        ? 'border-red-500 bg-red-600/10 text-white font-bold'
                         : 'border-white/5 bg-white/20 text-white/60 hover:border-white/20 hover:text-white'
                       }
                     `}
                   >
                     <span>{theme.name}</span>
-                    <span 
-                      className="w-2 h-2 rounded-full border border-white/25" 
+                    <span
+                      className="w-2 h-2 rounded-full border border-white/25"
                       style={{ backgroundColor: theme.color }}
                     />
                   </button>
                 ))}
               </div>
 
-              {/* Secret Trigger button */}
+              {/* Launch Game */}
               <button
-                onClick={() => {
-                  setPanelOpen(false);
-                  playSynthBeep(850, 0.1, "sine");
-                  startHackingGame();
-                }}
+                onClick={() => { setPanelOpen(false); playSynthBeep(850, 0.1, "sine"); startHackingGame(); }}
                 className="mt-1.5 py-1.5 bg-red-600 text-white font-mono text-[8px] font-bold uppercase tracking-widest rounded hover:bg-red-700 transition-colors text-center shadow-[0_0_10px_rgba(239,68,68,0.4)] animate-pulse"
               >
                 [ SYSTEM BYPASS ]
               </button>
+
+              {/* Hint */}
+              <p className="text-[7px] font-mono text-white/20 text-center uppercase tracking-widest leading-relaxed">
+                Type "cheats" anywhere for secrets
+              </p>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Fallout Hacking minigame Modal */}
+      {/* ── Hacking Game: Playing ── */}
       <AnimatePresence>
         {gameOpen && gameStatus === 'playing' && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md p-4" data-lenis-prevent="true">
@@ -529,42 +556,33 @@ const ThemeAndEasterEgg = () => {
               exit={{ opacity: 0, scale: 0.95 }}
               className="relative max-w-lg w-full bg-[#030303] border border-red-500/40 p-6 md:p-8 shadow-[0_0_30px_rgba(239,68,68,0.3)] flex flex-col max-h-[85vh] rounded-xl overflow-hidden font-mono"
             >
-              {/* Scanline Sweep */}
               <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_50%,rgba(239,68,68,0.015)_50%)] bg-[length:100%_4px] pointer-events-none" />
 
-              {/* Header */}
               <div className="flex justify-between items-center border-b border-white/5 pb-4 mb-4 z-10">
                 <div className="flex items-center gap-2">
                   <Terminal size={14} className="text-red-500 animate-pulse" />
                   <span className="text-[10px] text-red-500 font-bold uppercase tracking-wider">
-                    SYSTEM_DECIPHER // PORTAL
+                    FIREWALL_DECIPHER // TERMINAL
                   </span>
                 </div>
                 <button
-                  onClick={() => {
-                    playSynthBeep(400, 0.08, "sine");
-                    setGameOpen(false);
-                  }}
+                  onClick={() => { playSynthBeep(400, 0.08, "sine"); setGameOpen(false); }}
                   className="px-3 py-1 border border-red-600/50 text-[9px] text-red-500 hover:bg-red-600 hover:text-white transition-all uppercase tracking-widest font-bold rounded"
                 >
                   Close
                 </button>
               </div>
 
-              {/* Main Game Screen */}
               <div className="flex-grow flex flex-col gap-5 overflow-hidden z-10 text-left">
-                
-                {/* Diagnostic Monitor Console */}
                 <div className="bg-[#050505] border border-white/5 rounded-md p-4 h-36 overflow-y-auto scrollbar-none flex flex-col gap-1 text-[9px] text-red-400/80 leading-relaxed uppercase">
                   {log.map((line, idx) => (
-                    <div key={idx} className={line.startsWith(">") ? "text-white font-bold" : ""}>
+                    <div key={idx} className={line.startsWith(">") ? "text-white font-bold" : line.includes("████") ? "text-green-400 font-bold text-sm animate-pulse" : ""}>
                       {line}
                     </div>
                   ))}
                 </div>
 
                 <div className="flex flex-col gap-4">
-                  {/* Access Attempts Remaining Indicator */}
                   <div className="flex justify-between items-center text-[10px] text-white/50 uppercase">
                     <span>Attempts remaining:</span>
                     <div className="flex gap-1.5">
@@ -579,7 +597,6 @@ const ThemeAndEasterEgg = () => {
                     </div>
                   </div>
 
-                  {/* Candidate grids */}
                   <div className="grid grid-cols-3 gap-2">
                     {CANDIDATE_CODES.map((code) => (
                       <button
@@ -593,13 +610,17 @@ const ThemeAndEasterEgg = () => {
                   </div>
                 </div>
 
+                {/* Reward hint */}
+                <div className="text-[8px] text-white/15 text-center uppercase tracking-widest font-mono">
+                  ★ Crack the code to unlock the secret PHANTOM theme ★
+                </div>
               </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      {/* Fallout Hacking Lockout / Failure screen */}
+      {/* ── Hacking Game: Lockout ── */}
       <AnimatePresence>
         {gameOpen && gameStatus === 'lost' && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md p-4" data-lenis-prevent="true">
@@ -614,246 +635,88 @@ const ThemeAndEasterEgg = () => {
               </div>
               <h4 className="text-sm font-bold text-red-500 uppercase tracking-widest mb-2">SYSTEM LOCKOUT</h4>
               <p className="text-[10px] text-white/40 uppercase mb-6 leading-relaxed">
-                Security block active. Decryption process expired. Correct code: {secretCode}.
+                Security block active. Correct code was: {secretCode}.
               </p>
-              
               <button
                 onClick={startHackingGame}
                 className="w-full py-3 bg-red-600 text-white font-mono text-[9px] font-bold uppercase tracking-widest rounded flex items-center justify-center gap-1.5 hover:bg-red-700 transition-colors shadow-[0_0_10px_rgba(239,68,68,0.4)]"
               >
-                <RefreshCw size={10} /> Reboot console
+                <RefreshCw size={10} /> Reboot Console
               </button>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      {/* Unified Mainframe Administrative & Recruiter Control Dashboard */}
+      {/* ── Hacking Game: Victory Celebration ── */}
       <AnimatePresence>
-        {isDashboardOpen && (
+        {gameOpen && gameStatus === 'won' && (
           <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/98 backdrop-blur-lg p-4" data-lenis-prevent="true">
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="relative max-w-3xl w-full bg-[#050505] border border-red-500/40 p-6 md:p-8 shadow-[0_0_40px_rgba(239,68,68,0.35)] flex flex-col max-h-[90vh] rounded-2xl overflow-y-auto scrollbar-none font-mono"
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              className="relative max-w-md w-full bg-[#050505] border-2 border-red-500/60 p-8 shadow-[0_0_60px_rgba(239,68,68,0.4)] flex flex-col items-center text-center rounded-2xl overflow-hidden font-mono"
             >
-              {/* Scanline Sweep */}
-              <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_50%,rgba(239,68,68,0.012)_50%)] bg-[length:100%_4px] pointer-events-none" />
-
-              {/* Header */}
-              <div className="flex justify-between items-center border-b border-white/10 pb-4 mb-6 z-10">
-                <div className="flex items-center gap-2.5">
-                  <Trophy size={16} className="text-red-500 animate-pulse" />
-                  <div className="flex flex-col text-left">
-                    <span className="text-xs text-white font-heading font-black tracking-wider leading-none">
-                      MAINFRAME_COCKPIT // SOWMIYAN S.
-                    </span>
-                    <span className="text-[8px] text-red-500 font-bold uppercase tracking-widest mt-1">
-                      {godModeOpen ? "ADMIN OVERRIDE: ACTIVE (KONAMI)" : "FIREWALL OVERRIDE: ACTIVE (DECRYPTED)"}
-                    </span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => {
-                    playSynthBeep(400, 0.08, "sine");
-                    setGodModeOpen(false);
-                    setGameOpen(false);
-                  }}
-                  className="px-3.5 py-1.5 border border-red-600/50 text-[9px] text-red-500 hover:bg-red-600 hover:text-white transition-all uppercase tracking-widest font-black rounded-lg"
-                >
-                  Exit Control
-                </button>
-              </div>
-
-              {/* Cockpit Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left z-10">
-                
-                {/* Column 1: Live Telemetry Session Info */}
-                <div className="border border-white/5 bg-white/[0.02] p-4 rounded-xl flex flex-col gap-3">
-                  <span className="text-[8px] font-bold text-red-500 tracking-widest uppercase flex items-center gap-1.5 border-b border-white/5 pb-2">
-                    <Monitor size={10} /> SESSION TELEMETRY
-                  </span>
-
-                  <div className="flex flex-col gap-2.5 text-[9px] text-white/70 leading-none">
-                    <div className="flex justify-between">
-                      <span className="opacity-50">CLIENT PLATFORM:</span>
-                      <span className="font-bold text-white uppercase">{telemetry.os}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="opacity-50">ENGINE TYPE:</span>
-                      <span className="font-bold text-white uppercase">{telemetry.browser}</span>
-                    </div>
-                    <div className="flex justify-between flex-wrap gap-1">
-                      <span className="opacity-50">CONNECTION:</span>
-                      <span className="font-bold text-white uppercase flex items-center gap-1"><Wifi size={8} /> {telemetry.connection}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="opacity-50">PING LATENCY:</span>
-                      <span className="font-bold text-white">{telemetry.latency}</span>
-                    </div>
-                    <div className="flex justify-between items-center border-t border-white/5 pt-2 mt-1">
-                      <span className="opacity-50 flex items-center gap-1"><Clock size={8} /> SESSION UPTIME:</span>
-                      <span className="font-bold text-red-500 font-mono text-[10px] animate-pulse">{formatUptime(telemetry.uptime)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Column 2: Direct Contact Hub (Recruiter shortcuts) */}
-                <div className="border border-white/5 bg-white/[0.02] p-4 rounded-xl flex flex-col gap-3">
-                  <span className="text-[8px] font-bold text-red-500 tracking-widest uppercase flex items-center gap-1.5 border-b border-white/5 pb-2">
-                    <Sparkles size={10} /> RECRUITER ACTION HUB
-                  </span>
-
-                  <div className="flex flex-col gap-2">
-                    {/* CV Download button */}
-                    <a
-                      href={RESUME_URL}
-                      target="_blank"
-                      rel="noreferrer"
-                      onClick={() => playSynthBeep(800, 0.1, "sine")}
-                      className="flex items-center justify-between px-3 py-2 bg-red-600 text-white font-bold text-[9px] uppercase tracking-wider rounded-lg hover:bg-red-700 transition-colors shadow-[0_0_12px_rgba(239,68,68,0.2)]"
-                    >
-                      <span>Download Resume</span>
-                      <Download size={10} />
-                    </a>
-
-                    {/* Email copy button */}
-                    <button
-                      onClick={copyEmailToClipboard}
-                      className="flex items-center justify-between px-3 py-2 border border-white/10 bg-white/5 text-white text-[9px] uppercase tracking-wider rounded-lg hover:border-white/30 hover:bg-white/10 transition-all"
-                    >
-                      <span>{copiedEmail ? "[ Copied! ]" : "Copy Email"}</span>
-                      <Copy size={10} />
-                    </button>
-
-                    {/* Direct WhatsApp link */}
-                    <a
-                      href="https://wa.me/919042561295?text=Hi%20Sowmiyan,%20I%20am%20a%20recruiter%20and%20just%20unlocked%20your%20mainframe!"
-                      target="_blank"
-                      rel="noreferrer"
-                      onClick={() => playSynthBeep(900, 0.1, "sine")}
-                      className="flex items-center justify-between px-3 py-2 border border-white/10 bg-white/5 text-white text-[9px] uppercase tracking-wider rounded-lg hover:border-white/30 hover:bg-white/10 transition-all"
-                    >
-                      <span>WhatsApp Chat</span>
-                      <Phone size={10} />
-                    </a>
-
-                    {/* Email composer link */}
-                    <a
-                      href="mailto:sowmisowmiyan58@gmail.com?subject=Mainframe%20Inquiry%20-%20AI%20Engineer"
-                      onClick={() => playSynthBeep(800, 0.1, "sine")}
-                      className="flex items-center justify-between px-3 py-2 border border-white/10 bg-white/5 text-white text-[9px] uppercase tracking-wider rounded-lg hover:border-white/30 hover:bg-white/10 transition-all"
-                    >
-                      <span>Email direct</span>
-                      <Mail size={10} />
-                    </a>
-                  </div>
-                </div>
-
-                {/* Column 3: Live Visual modifiers (Toggles) */}
-                <div className="border border-white/5 bg-white/[0.02] p-4 rounded-xl flex flex-col gap-3">
-                  <span className="text-[8px] font-bold text-red-500 tracking-widest uppercase flex items-center gap-1.5 border-b border-white/5 pb-2">
-                    <AlertTriangle size={10} /> DYNAMIC MODIFIERS
-                  </span>
-
-                  <div className="flex flex-col gap-2">
-                    {/* Audio mute toggler */}
-                    <button
-                      onClick={toggleAudio}
-                      className="flex items-center justify-between px-3 py-2 border border-white/10 bg-white/5 text-white text-[9px] uppercase tracking-wider rounded-lg hover:border-white/30 hover:bg-white/10 transition-all"
-                    >
-                      <span>Toggle Sound SFX</span>
-                      {audioMuted ? <VolumeX size={12} className="text-red-500" /> : <Volume2 size={12} className="text-emerald-500" />}
-                    </button>
-
-                    {/* Screen glitch filter trigger */}
-                    <button
-                      onClick={triggerGlitchDisplay}
-                      className="flex items-center justify-between px-3 py-2 border border-white/10 bg-white/5 text-white text-[9px] uppercase tracking-wider rounded-lg hover:border-white/30 hover:bg-white/10 transition-all"
-                    >
-                      <span>Test screen glitch</span>
-                      <RefreshCw size={10} />
-                    </button>
-
-                    {/* Barrel roll spin trigger */}
-                    <button
-                      onClick={triggerBarrelRollAxis}
-                      className="flex items-center justify-between px-3 py-2 border border-white/10 bg-white/5 text-white text-[9px] uppercase tracking-wider rounded-lg hover:border-white/30 hover:bg-white/10 transition-all"
-                    >
-                      <span>Test Axis spin</span>
-                      <RotateCw size={10} />
-                    </button>
-                  </div>
-                </div>
-
-              </div>
-
-              {/* Status Message Footer */}
-              <div className="mt-6 border-t border-white/5 pt-4 text-center">
-                <span className="text-[8px] text-white/30 uppercase tracking-[0.3em] font-mono leading-none">
-                  ADMINISTRATIVE OVERRIDE GRANTED // SOURCE CODE AUTHORIZED BY SOWMIYAN S.
-                </span>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Secret Accolade Trophy Modal */}
-      <AnimatePresence>
-        {secretTrophyOpen && (
-          <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/98 backdrop-blur-lg p-4" data-lenis-prevent="true">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="relative max-w-md w-full bg-[#050505] border-2 border-red-500/40 p-8 shadow-[0_0_40px_rgba(239,68,68,0.25)] flex flex-col items-center text-center rounded-2xl overflow-hidden font-mono"
-            >
+              {/* Animated glow border */}
+              <div className="absolute inset-0 rounded-2xl animate-glow-border pointer-events-none" />
               <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_50%,rgba(239,68,68,0.015)_50%)] bg-[length:100%_4px] pointer-events-none" />
 
-              <Sparkles size={48} className="text-red-500 animate-pulse mb-4 filter drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
-              
-              <h3 className="text-xl font-heading font-black text-red-500 uppercase tracking-widest mb-2 leading-none">
-                Secret Discovered
-              </h3>
-              <span className="text-[9px] text-red-500/60 uppercase tracking-widest mb-6 font-bold">
-                [ ACCESS_GRANT // MASTER_EXPLORER ]
-              </span>
+              <motion.div
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
+              >
+                <Sparkles size={56} className="text-red-500 mb-4 filter drop-shadow-[0_0_20px_rgba(239,68,68,0.8)] animate-pulse" />
+              </motion.div>
 
-              <p className="text-xs text-white/70 leading-relaxed mb-6">
-                Congratulations! You have cracked Sowmiyan's hidden repository token. Ultimate Mainframe Explorer Accolade unlocked!
-              </p>
+              <motion.h3
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="text-2xl font-heading font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-pink-500 to-purple-500 uppercase tracking-widest mb-2"
+              >
+                PHANTOM UNLOCKED
+              </motion.h3>
 
-              {/* ASCII Cup Trophy */}
-              <pre className="bg-black/80 border border-red-500/10 p-4 rounded text-[6px] text-red-400 font-mono tracking-widest mb-6 select-none">
-{`       ___________
-      '.__==__==__.'
-      .-\\:      /-.
-     | (|:.     |) |
-      '-|:.     |-'
-        \\::.    /
-         '::.  '
-           ) (
-         _.' '._
-        \`"""""""\``}
-              </pre>
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6 }}
+                className="text-[9px] text-red-500/60 uppercase tracking-widest mb-6 font-bold"
+              >
+                [ ELITE_STATUS // MASTER_HACKER ]
+              </motion.span>
 
-              <button
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.8 }}
+                className="text-xs text-white/70 leading-relaxed mb-6"
+              >
+                You cracked the firewall. The secret <span className="text-red-500 font-bold">PHANTOM</span> theme
+                is now permanently unlocked in your settings panel. Only those who breach the system earn this.
+              </motion.p>
+
+              <motion.button
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1 }}
                 onClick={() => {
                   playSynthBeep(500, 0.08, "sine");
-                  setSecretTrophyOpen(false);
+                  setGameOpen(false);
                 }}
-                className="w-full py-3 bg-red-600 text-white font-mono text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-red-700 transition-colors shadow-[0_0_15px_rgba(220,38,38,0.3)]"
+                className="w-full py-3 bg-gradient-to-r from-red-600 to-pink-600 text-white font-mono text-[10px] font-black uppercase tracking-widest rounded-lg hover:from-red-700 hover:to-pink-700 transition-all shadow-[0_0_20px_rgba(220,38,38,0.4)]"
               >
-                Claim Trophy
-              </button>
+                Accept & Continue
+              </motion.button>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      {/* Floating System HUD alerts */}
+      {/* ── Floating HUD Alert ── */}
       <AnimatePresence>
         {alert && (
           <motion.div

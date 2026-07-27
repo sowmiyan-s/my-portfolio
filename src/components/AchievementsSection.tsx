@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { certificatesList, Certificate } from '@/lib/certificates';
 
 const achievements = [
@@ -46,12 +47,12 @@ const AchievementsSection = () => {
                         <div className="flex flex-col gap-6">
                             <div className="flex justify-between items-center border-l-2 border-red-600 pl-4 pr-2">
                                 <span className="text-xs font-mono opacity-40 uppercase tracking-widest">Validated_Certifications</span>
-                                <a 
-                                    href="/achievements" 
+                                <Link 
+                                    to="/achievements" 
                                     className="text-[10px] font-mono text-red-500 hover:text-white uppercase tracking-wider transition-colors flex items-center gap-1 font-bold"
                                 >
                                     View All ({certificatesList.length}) →
-                                </a>
+                                </Link>
                             </div>
                             
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -62,7 +63,7 @@ const AchievementsSection = () => {
                                         className="relative aspect-[4/3] border border-white/10 bg-black/40 hover:border-red-600 transition-all cursor-pointer overflow-hidden group shadow-md rounded-sm"
                                     >
                                         <img 
-                                            src={`/CERTIFICATE/${cert.image}`} 
+                                            src={cert.image} 
                                             alt={cert.name} 
                                             className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" 
                                         />
@@ -108,7 +109,7 @@ const AchievementsSection = () => {
                         </button>
                         <div className="relative aspect-[4/3] w-full overflow-hidden border border-white/5 bg-black">
                             <img 
-                                src={`/CERTIFICATE/${selectedCert.image}`} 
+                                src={selectedCert.image} 
                                 alt={selectedCert.name} 
                                 className="w-full h-full object-contain" 
                             />
@@ -119,7 +120,7 @@ const AchievementsSection = () => {
                                 <p className="text-xs font-mono text-muted-foreground uppercase">RECORDED CERTIFICATE</p>
                             </div>
                             <a 
-                                href={`/CERTIFICATE/${selectedCert.image}`} 
+                                href={selectedCert.image} 
                                 download 
                                 className="px-4 py-2 border border-red-600 text-[10px] font-mono text-red-500 hover:bg-red-600 hover:text-white transition-all uppercase tracking-widest font-bold rounded-sm shrink-0"
                             >

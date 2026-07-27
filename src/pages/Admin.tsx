@@ -4,6 +4,15 @@ import { fetchChannelVideos, YouTubeVideo } from '@/lib/youtube';
 import { supabase } from '@/integrations/supabase/client';
 import { formatRepoName } from '@/lib/formatRepo';
 import { useRealtimeRefetch } from '@/hooks/useRealtimeRefetch';
+import {
+    fetchHiddenProjectIds,
+    fetchFeaturedProjects,
+    toggleHiddenProjectDb,
+    setAllHiddenProjectsDb,
+    toggleFeaturedProjectDb,
+    updateFeaturedOrderDb,
+    FeaturedProject
+} from '@/lib/projectSettings';
 import { toast } from '@/hooks/use-toast';
 import TechNav from '@/components/TechNav';
 import Footer from '@/components/Footer';
@@ -24,7 +33,7 @@ const Admin = () => {
 
     const [repos, setRepos] = useState<GitHubRepo[]>([]);
     const [hiddenIds, setHiddenIds] = useState<number[]>([]);
-    const [featured, setFeatured] = useState<{ id: number; repo_name: string; position: number }[]>([]);
+    const [featured, setFeatured] = useState<FeaturedProject[]>([]);
     const [loading, setLoading] = useState(true);
     const [techSkills, setTechSkills] = useState<{ id: string; name: string }[]>([]);
     const [nonTechSkills, setNonTechSkills] = useState<{ id: string; name: string }[]>([]);
@@ -49,16 +58,16 @@ const Admin = () => {
 
     const loadData = async () => {
         setLoading(true);
-        const [repoData, hiddenRes, skillRes, featuredRes, settingsRes] = await Promise.all([
+        const [repoData, hiddenList, featuredList, skillRes, settingsRes] = await Promise.all([
             fetchRepos(),
-            supabase.from('hidden_projects').select('github_repo_id'),
+            fetchHiddenProjectIds(),
+            fetchFeaturedProjects(),
             supabase.from('skills').select('id, name, category'),
-            supabase.from('featured_projects').select('github_repo_id, repo_name, position').order('position', { ascending: true }),
             supabase.from('site_settings').select('key, value'),
         ]);
         setRepos(repoData);
-        setHiddenIds((hiddenRes.data ?? []).map((r: any) => r.github_repo_id));
-        setFeatured((featuredRes.data ?? []).map((r: any) => ({ id: r.github_repo_id, repo_name: r.repo_name, position: r.position ?? 0 })));
+        setHiddenIds(hiddenList);
+        setFeatured(featuredList);
         setTechSkills((skillRes.data ?? []).filter((s: any) => s.category === 'tech').map((s: any) => ({ id: s.id, name: s.name })));
         setNonTechSkills((skillRes.data ?? []).filter((s: any) => s.category === 'non-tech').map((s: any) => ({ id: s.id, name: s.name })));
         for (const row of settingsRes.data ?? []) {
@@ -76,17 +85,14 @@ const Admin = () => {
     };
 
     const toggleFeatured = async (repo: GitHubRepo) => {
-        if (featuredIds.includes(repo.id)) {
-            await supabase.from('featured_projects').delete().eq('github_repo_id', repo.id);
-            setFeatured(prev => prev.filter(f => f.id !== repo.id));
-            toast({ title: 'Unfeatured', description: formatRepoName(repo.name) });
-        } else {
-            if (featured.length >= 3) { toast({ title: 'Limit reached', description: 'Max 3 featured projects.' }); return; }
-            const position = featured.length;
-            await supabase.from('featured_projects').insert({ github_repo_id: repo.id, repo_name: repo.name, position });
-            setFeatured(prev => [...prev, { id: repo.id, repo_name: repo.name, position }]);
-            toast({ title: '★ Featured', description: formatRepoName(repo.name) });
+        const isFeatured = featuredIds.includes(repo.id);
+        if (!isFeatured && featured.length >= 3) {
+            toast({ title: 'Limit reached', description: 'Max 3 featured projects.' });
+            return;
         }
+        const updated = await toggleFeaturedProjectDb({ id: repo.id, name: repo.name }, featured);
+        setFeatured(updated);
+        toast({ title: isFeatured ? 'Unfeatured' : '★ Featured', description: formatRepoName(repo.name) });
     };
 
 
@@ -95,13 +101,8 @@ const Admin = () => {
         const target = idx + dir;
         if (target < 0 || target >= next.length) return;
         [next[idx], next[target]] = [next[target], next[idx]];
-        const withPos = next.map((f, i) => ({ ...f, position: i }));
-        setFeatured(withPos);
-        await Promise.all(
-            withPos.map(f =>
-                supabase.from('featured_projects').update({ position: f.position }).eq('github_repo_id', f.id)
-            )
-        );
+        const updated = await updateFeaturedOrderDb(next);
+        setFeatured(updated);
     };
 
     const setSetting = async (key: string, value: boolean) => {
@@ -169,11 +170,19 @@ const Admin = () => {
 
     useEffect(() => { if (authed) { loadData(); loadVideos(); } }, [authed]);
 
-    // Realtime: refresh admin data when any admin table changes (across tabs / devices).
+    // Realtime: refresh admin data when any admin table changes or local portfolio config changes
     useRealtimeRefetch(
         authed ? ['featured_projects', 'hidden_projects', 'skills', 'site_settings'] : [],
         () => { setLiveTick(t => t + 1); loadData(); }
     );
+
+    useEffect(() => {
+        const handleConfigChanged = () => {
+            loadData();
+        };
+        window.addEventListener('portfolio-config-changed', handleConfigChanged);
+        return () => window.removeEventListener('portfolio-config-changed', handleConfigChanged);
+    }, []);
 
 
     const handleLogin = (e: React.FormEvent) => {
@@ -194,29 +203,25 @@ const Admin = () => {
     };
 
     const toggleProject = async (id: number, repoName: string) => {
-        if (hiddenIds.includes(id)) {
-            await supabase.from('hidden_projects').delete().eq('github_repo_id', id);
-            setHiddenIds(prev => prev.filter(hid => hid !== id));
-            toast({ title: 'Now visible', description: formatRepoName(repoName) });
-        } else {
-            await supabase.from('hidden_projects').insert({ github_repo_id: id, repo_name: repoName });
-            setHiddenIds(prev => [...prev, id]);
-            toast({ title: 'Hidden', description: formatRepoName(repoName) });
-        }
+        const currentlyHidden = hiddenIds.includes(id);
+        const nextHidden = await toggleHiddenProjectDb(id, repoName, currentlyHidden);
+        setHiddenIds(nextHidden);
+        toast({ title: currentlyHidden ? 'Now visible' : 'Hidden', description: formatRepoName(repoName) });
     };
 
     const bulkAction = async (action: "hideAll" | "showAll") => {
         if (!confirm(`Are you sure you want to ${action === "hideAll" ? "hide" : "show"} ALL repositories?`)) return;
+        const repoMap: Record<number, string> = {};
+        repos.forEach(r => { repoMap[r.id] = r.name; });
+
         if (action === "hideAll") {
-            const toHide = repos.filter(r => !hiddenIds.includes(r.id));
-            if (toHide.length) {
-                await supabase.from('hidden_projects').insert(toHide.map(r => ({ github_repo_id: r.id, repo_name: r.name })));
-            }
-            setHiddenIds(repos.map(r => r.id));
-            toast({ title: 'All hidden', description: `${toHide.length} repos` });
+            const allIds = repos.map(r => r.id);
+            const nextHidden = await setAllHiddenProjectsDb(allIds, repoMap);
+            setHiddenIds(nextHidden);
+            toast({ title: 'All hidden', description: `${allIds.length} repos` });
         } else {
-            await supabase.from('hidden_projects').delete().neq('github_repo_id', -1);
-            setHiddenIds([]);
+            const nextHidden = await setAllHiddenProjectsDb([], repoMap);
+            setHiddenIds(nextHidden);
             toast({ title: 'All visible' });
         }
     };

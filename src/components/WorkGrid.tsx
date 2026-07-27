@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { fetchRepos, GitHubRepo } from '@/lib/github';
-import { supabase } from '@/integrations/supabase/client';
+import { fetchHiddenProjectIds } from '@/lib/projectSettings';
 import { formatRepoName } from '@/lib/formatRepo';
 import { useNavigate } from 'react-router-dom';
 import { useRealtimeRefetch } from '@/hooks/useRealtimeRefetch';
@@ -12,18 +12,22 @@ const WorkGrid = () => {
     const navigate = useNavigate();
 
     const load = useCallback(async () => {
-        const [data, hiddenRes] = await Promise.all([
+        const [data, hidden] = await Promise.all([
             fetchRepos(),
-            supabase.from('hidden_projects').select('github_repo_id'),
+            fetchHiddenProjectIds(),
         ]);
-        const hidden = (hiddenRes.data ?? []).map((r: any) => r.github_repo_id);
         const filtered = data.filter(repo => !hidden.includes(repo.id));
         setProjects(filtered.slice(0, 6));
         setLoading(false);
     }, []);
 
-    useEffect(() => { load(); }, [load]);
+    useEffect(() => {
+        load();
+        window.addEventListener('portfolio-config-changed', load);
+        return () => window.removeEventListener('portfolio-config-changed', load);
+    }, [load]);
     useRealtimeRefetch(['hidden_projects'], load);
+
 
 
     if (loading) return (

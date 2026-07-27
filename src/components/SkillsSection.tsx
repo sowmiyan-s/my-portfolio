@@ -9,7 +9,6 @@ const defaultTech = [
   'Python',
   'Java',
   'SQL',
-  'LLMs',
   'LangChain',
   'CrewAI',
   'Hugging Face',
@@ -23,10 +22,7 @@ const defaultTech = [
   'Tailwind CSS',
   'React',
   'Vite',
-  'VSCode',
   'Figma',
-  'Gigma',
-  'Canva',
   'Claude',
   'Git',
   'GitHub',
@@ -37,13 +33,17 @@ const defaultTech = [
 
 const softIconMap: Record<string, any> = {};
 
+const SKILLS_TO_EXCLUDE = new Set(['llm', 'llms', 'vscode', 'vs code', 'canva', 'gigma']);
+
 const SkillsSection = () => {
     const [tech, setTech] = useState<string[]>(defaultTech);
 
     const load = useCallback(async () => {
         const { data } = await supabase.from('skills').select('name, category');
         if (data && data.length) {
-            const t = data.filter((s: any) => s.category === 'tech').map((s: any) => s.name);
+            const t = data
+                .filter((s: any) => s.category === 'tech' && !SKILLS_TO_EXCLUDE.has(s.name.toLowerCase().trim()))
+                .map((s: any) => s.name);
             setTech(t.length ? t : defaultTech);
         }
     }, []);

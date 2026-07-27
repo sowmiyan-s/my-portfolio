@@ -296,6 +296,23 @@
   border-color: hsla(var(--theme-color), 0.4) !important;
 }
 
+/* Mystery Butterfly Animations */
+@keyframes butterfly-float {
+  0%, 100% { transform: translateY(0px) rotate(-3deg); }
+  50% { transform: translateY(-8px) rotate(3deg); }
+}
+.butterfly-float {
+  animation: butterfly-float 3s ease-in-out infinite;
+}
+
+@keyframes butterfly-flap {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(0.3); }
+}
+.butterfly-wings {
+  animation: butterfly-flap 0.3s ease-in-out infinite;
+}
+
 /* Easter Egg Animations */
 @keyframes barrel-roll {
   0% { transform: rotate(0deg); }
@@ -307,12 +324,82 @@
 
 @keyframes screen-glitch {
   0% { filter: hue-rotate(0deg) skew(0deg); opacity: 1; }
-  20% { filter: hue-rotate(90deg) skew(5deg); opacity: 0.95; }
-  40% { filter: hue-rotate(180deg) skew(-5deg); opacity: 0.9; }
-  60% { filter: hue-rotate(270deg) skew(8deg); opacity: 0.95; }
-  80% { filter: hue-rotate(360deg) skew(-2deg); opacity: 1; }
+  10% { filter: hue-rotate(90deg) skew(5deg) saturate(3); opacity: 0.85; }
+  20% { filter: hue-rotate(180deg) skew(-8deg) brightness(1.5); opacity: 0.9; }
+  30% { filter: hue-rotate(270deg) skew(3deg) contrast(2); opacity: 0.95; }
+  40% { filter: hue-rotate(360deg) skew(-5deg) invert(0.2); opacity: 0.8; }
+  50% { filter: hue-rotate(45deg) skew(10deg) saturate(0.5); opacity: 1; }
+  60% { filter: hue-rotate(135deg) skew(-3deg) brightness(0.7); opacity: 0.9; }
+  70% { filter: hue-rotate(225deg) skew(6deg) contrast(1.5); opacity: 0.95; }
+  80% { filter: hue-rotate(315deg) skew(-8deg); opacity: 0.85; }
+  90% { filter: hue-rotate(360deg) skew(2deg); opacity: 0.95; }
+  100% { filter: none; opacity: 1; }
 }
 .glitch-filter-active {
-  animation: screen-glitch 0.4s linear infinite;
+  animation: screen-glitch 0.6s linear infinite;
 }
+
+/* Confetti Burst Particle Animation */
+@keyframes confetti-burst {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--drift-x, 0px), calc(-200px + 800px * var(--random, 0.5))) rotate(var(--rotation, 360deg)) scale(0);
+    opacity: 0;
+  }
+}
+
+/* Glow Border Animation for Victory Reward */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.3), inset 0 0 20px rgba(239, 68, 68, 0.05); }
+  50% { box-shadow: 0 0 40px rgba(239, 68, 68, 0.6), 0 0 80px rgba(236, 72, 153, 0.3), inset 0 0 30px rgba(239, 68, 68, 0.1); }
+}
+.animate-glow-border {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* ── Secret Themes (Not in Settings Panel) ── */
+[data-theme="neon"] {
+  --theme-color: 330 90% 56%; /* Neon Pink */
+}
+
+[data-theme="midnight"] {
+  --theme-color: 190 95% 42%; /* Midnight Teal */
+}
+
+[data-theme="phantom"] {
+  --theme-color: 350 90% 60%; /* Phantom Rose */
+}
+
+/* Rainbow mode — the --theme-color is set dynamically via JS */
+[data-theme="rainbow"] {
+  /* JS controls --theme-color directly via setInterval */
+}
+
+/* YouTube Marquee Animation */
+@keyframes youtube-marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-youtube-marquee {
+  display: flex;
+  width: max-content;
+  animation: youtube-marquee var(--marquee-duration, 35s) linear infinite;
+  will-change: transform;
+}
+
+.animate-youtube-marquee:hover {
+  animation-play-state: paused;
+}
+
 

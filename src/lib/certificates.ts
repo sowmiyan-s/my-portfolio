@@ -3,10 +3,10 @@ export interface Certificate {
   image: string;
 }
 
-// Dynamically match all image files inside the public/CERTIFICATE directory
-const certModules = import.meta.glob('/public/CERTIFICATE/*.{png,jpg,jpeg,PNG,JPG,JPEG}', { eager: true });
+// Dynamically match all image files inside the src/assets/CERTIFICATE directory
+const certModules = import.meta.glob<{ default: string }>('../assets/CERTIFICATE/*.{png,jpg,jpeg,PNG,JPG,JPEG}', { eager: true });
 
-export const certificatesList: Certificate[] = Object.keys(certModules).map((path) => {
+export const certificatesList: Certificate[] = Object.entries(certModules).map(([path, module]) => {
   const filename = path.split('/').pop() || '';
   const nameWithoutExt = filename.substring(0, filename.lastIndexOf('.'));
   
@@ -18,6 +18,6 @@ export const certificatesList: Certificate[] = Object.keys(certModules).map((pat
 
   return {
     name: title,
-    image: filename
+    image: module.default
   };
 });
