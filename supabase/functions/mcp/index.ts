@@ -99,7 +99,7 @@ var get_profile_default = defineTool3({
       location: "Namakkal, Tamil Nadu, India",
       education: "VSB College of Engineering Technical Campus, Kandampalayam",
       links: {
-        portfolio: "https://sowmiyan-s.vercel.app",
+        portfolio: "https://sowmiyan-s.lovable.app",
         github: "https://github.com/sowmiyan-s",
         resume: "https://drive.google.com/file/d/1NmangaAFo0eGT-KAsZi4VWOm6zI-KPk6/view?usp=sharing"
       }

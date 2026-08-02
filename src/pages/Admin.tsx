@@ -326,7 +326,7 @@ const Admin = () => {
                             className="w-full px-4 py-4 bg-white/5 border border-white/10 text-white font-mono text-lg tracking-[0.6em] text-center focus:outline-none focus:border-red-600 transition-colors"
                         />
                         {error && <span className="text-[10px] font-mono text-red-500 tracking-widest text-center animate-pulse">{error}</span>}
-                        <button type="submit" className="py-4 bg-red-600 text-white font-heading font-black text-xs uppercase tracking-[0.3em] hover:bg-white hover:text-black transition-all">
+                        <button type="submit" disabled={authBusy} className="py-4 bg-red-600 text-white font-heading font-black text-xs uppercase tracking-[0.3em] hover:bg-white hover:text-black transition-all disabled:opacity-50">
                             AUTHENTICATE →
                         </button>
                     </motion.form>
