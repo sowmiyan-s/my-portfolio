@@ -13,6 +13,7 @@ import {
     updateFeaturedOrderDb,
     FeaturedProject
 } from '@/lib/projectSettings';
+import { adminCall, verifyAdminPassword, setAdminPassword, clearAdminPassword, getAdminPassword } from '@/lib/adminApi';
 import { toast } from '@/hooks/use-toast';
 import TechNav from '@/components/TechNav';
 import Footer from '@/components/Footer';
@@ -21,13 +22,13 @@ import PageHero from '@/components/PageHero';
 import { motion } from 'framer-motion';
 import { Star, Eye, EyeOff, Trash2, Plus, Search, Lock, ArrowUp, ArrowDown, RefreshCw, Youtube, Download, Upload, Pencil, Check, X, Radio } from 'lucide-react';
 
-const ADMIN_PASSWORD = "121212";
 const AUTH_KEY = "adminAuthenticated";
 type SortMode = "updated" | "stars" | "name";
 
 
 const Admin = () => {
-    const [authed, setAuthed] = useState(() => sessionStorage.getItem(AUTH_KEY) === "true");
+    const [authed, setAuthed] = useState(() => sessionStorage.getItem(AUTH_KEY) === "true" && !!getAdminPassword());
+    const [authBusy, setAuthBusy] = useState(false);
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
 
@@ -90,9 +91,13 @@ const Admin = () => {
             toast({ title: 'Limit reached', description: 'Max 3 featured projects.' });
             return;
         }
-        const updated = await toggleFeaturedProjectDb({ id: repo.id, name: repo.name }, featured);
-        setFeatured(updated);
-        toast({ title: isFeatured ? 'Unfeatured' : '★ Featured', description: formatRepoName(repo.name) });
+        try {
+            const updated = await toggleFeaturedProjectDb({ id: repo.id, name: repo.name }, featured);
+            setFeatured(updated);
+            toast({ title: isFeatured ? 'Unfeatured' : '★ Featured', description: formatRepoName(repo.name) });
+        } catch (err) {
+            toast({ title: 'Save failed', description: (err as Error).message });
+        }
     };
 
 
@@ -101,21 +106,34 @@ const Admin = () => {
         const target = idx + dir;
         if (target < 0 || target >= next.length) return;
         [next[idx], next[target]] = [next[target], next[idx]];
-        const updated = await updateFeaturedOrderDb(next);
-        setFeatured(updated);
+        try {
+            const updated = await updateFeaturedOrderDb(next);
+            setFeatured(updated);
+        } catch (err) {
+            toast({ title: 'Save failed', description: (err as Error).message });
+        }
     };
 
     const setSetting = async (key: string, value: boolean) => {
-        await supabase.from('site_settings').upsert({ key, value: value as any, updated_at: new Date().toISOString() }, { onConflict: 'key' });
-        if (key === 'show_dividers') setShowDividers(value);
-        if (key === 'show_global_ticker') setShowGlobalTicker(value);
-        toast({ title: 'Setting saved', description: `${key} → ${value ? 'ON' : 'OFF'}` });
+        try {
+            await adminCall('set_setting', { key, value });
+            if (key === 'show_dividers') setShowDividers(value);
+            if (key === 'show_global_ticker') setShowGlobalTicker(value);
+            toast({ title: 'Setting saved', description: `${key} → ${value ? 'ON' : 'OFF'}` });
+        } catch (err) {
+            toast({ title: 'Save failed', description: (err as Error).message });
+        }
     };
 
     const renameSkill = async (id: string, name: string, category: 'tech' | 'non-tech') => {
         const trimmed = name.trim();
         if (!trimmed) return;
-        await supabase.from('skills').update({ name: trimmed }).eq('id', id);
+        try {
+            await adminCall('rename_skill', { id, name: trimmed });
+        } catch (err) {
+            toast({ title: 'Rename failed', description: (err as Error).message });
+            return;
+        }
         const map = (arr: {id: string; name: string}[]) => arr.map(s => s.id === id ? { ...s, name: trimmed } : s);
         if (category === 'tech') setTechSkills(map);
         else setNonTechSkills(map);
@@ -126,8 +144,14 @@ const Admin = () => {
     const bulkAddSkills = async (raw: string, category: 'tech' | 'non-tech') => {
         const names = raw.split(/[,\n]/).map(s => s.trim()).filter(Boolean);
         if (!names.length) return;
-        const rows = names.map(name => ({ name, category }));
-        const { data } = await supabase.from('skills').insert(rows).select('id, name');
+        let data: { id: string; name: string }[] | null = null;
+        try {
+            const res = await adminCall<{ data: { id: string; name: string }[] }>('add_skills', { names, category });
+            data = res.data;
+        } catch (err) {
+            toast({ title: 'Add failed', description: (err as Error).message });
+            return;
+        }
         if (data) {
             if (category === 'tech') { setTechSkills(prev => [...prev, ...data]); setBulkTech(''); }
             else { setNonTechSkills(prev => [...prev, ...data]); setBulkNonTech(''); }
@@ -157,8 +181,8 @@ const Admin = () => {
             const cfg = JSON.parse(text);
             if (cfg.settings) {
                 await Promise.all([
-                    supabase.from('site_settings').upsert({ key: 'show_dividers', value: cfg.settings.show_dividers, updated_at: new Date().toISOString() }, { onConflict: 'key' }),
-                    supabase.from('site_settings').upsert({ key: 'show_global_ticker', value: cfg.settings.show_global_ticker, updated_at: new Date().toISOString() }, { onConflict: 'key' }),
+                    adminCall('set_setting', { key: 'show_dividers', value: !!cfg.settings.show_dividers }),
+                    adminCall('set_setting', { key: 'show_global_ticker', value: !!cfg.settings.show_global_ticker }),
                 ]);
             }
             await loadData();
@@ -185,9 +209,13 @@ const Admin = () => {
     }, []);
 
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (password === ADMIN_PASSWORD) {
+        setAuthBusy(true);
+        const ok = await verifyAdminPassword(password);
+        setAuthBusy(false);
+        if (ok) {
+            setAdminPassword(password);
             sessionStorage.setItem(AUTH_KEY, "true");
             setAuthed(true);
             setError("");
@@ -199,14 +227,19 @@ const Admin = () => {
 
     const logout = () => {
         sessionStorage.removeItem(AUTH_KEY);
+        clearAdminPassword();
         setAuthed(false);
     };
 
     const toggleProject = async (id: number, repoName: string) => {
         const currentlyHidden = hiddenIds.includes(id);
-        const nextHidden = await toggleHiddenProjectDb(id, repoName, currentlyHidden);
-        setHiddenIds(nextHidden);
-        toast({ title: currentlyHidden ? 'Now visible' : 'Hidden', description: formatRepoName(repoName) });
+        try {
+            const nextHidden = await toggleHiddenProjectDb(id, repoName, currentlyHidden, hiddenIds);
+            setHiddenIds(nextHidden);
+            toast({ title: currentlyHidden ? 'Now visible' : 'Hidden', description: formatRepoName(repoName) });
+        } catch (err) {
+            toast({ title: 'Save failed', description: (err as Error).message });
+        }
     };
 
     const bulkAction = async (action: "hideAll" | "showAll") => {
@@ -216,13 +249,21 @@ const Admin = () => {
 
         if (action === "hideAll") {
             const allIds = repos.map(r => r.id);
-            const nextHidden = await setAllHiddenProjectsDb(allIds, repoMap);
-            setHiddenIds(nextHidden);
-            toast({ title: 'All hidden', description: `${allIds.length} repos` });
+            try {
+                const nextHidden = await setAllHiddenProjectsDb(allIds, repoMap);
+                setHiddenIds(nextHidden);
+                toast({ title: 'All hidden', description: `${allIds.length} repos` });
+            } catch (err) {
+                toast({ title: 'Save failed', description: (err as Error).message });
+            }
         } else {
-            const nextHidden = await setAllHiddenProjectsDb([], repoMap);
-            setHiddenIds(nextHidden);
-            toast({ title: 'All visible' });
+            try {
+                const nextHidden = await setAllHiddenProjectsDb([], repoMap);
+                setHiddenIds(nextHidden);
+                toast({ title: 'All visible' });
+            } catch (err) {
+                toast({ title: 'Save failed', description: (err as Error).message });
+            }
         }
     };
 
@@ -231,15 +272,25 @@ const Admin = () => {
         e.preventDefault();
         const name = category === 'tech' ? newTechSkill.trim() : newNonTechSkill.trim();
         if (!name) return;
-        const { data } = await supabase.from('skills').insert({ name, category }).select('id, name').single();
-        if (data) {
-            if (category === 'tech') { setTechSkills(prev => [...prev, data]); setNewTechSkill(''); }
-            else { setNonTechSkills(prev => [...prev, data]); setNewNonTechSkill(''); }
+        try {
+            const res = await adminCall<{ data: { id: string; name: string }[] }>('add_skills', { names: [name], category });
+            const created = res.data?.[0];
+            if (created) {
+                if (category === 'tech') { setTechSkills(prev => [...prev, created]); setNewTechSkill(''); }
+                else { setNonTechSkills(prev => [...prev, created]); setNewNonTechSkill(''); }
+            }
+        } catch (err) {
+            toast({ title: 'Add failed', description: (err as Error).message });
         }
     };
 
     const removeSkill = async (id: string, category: 'tech' | 'non-tech') => {
-        await supabase.from('skills').delete().eq('id', id);
+        try {
+            await adminCall('delete_skill', { id });
+        } catch (err) {
+            toast({ title: 'Delete failed', description: (err as Error).message });
+            return;
+        }
         if (category === 'tech') setTechSkills(prev => prev.filter(s => s.id !== id));
         else setNonTechSkills(prev => prev.filter(s => s.id !== id));
     };
