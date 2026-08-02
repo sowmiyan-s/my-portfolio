@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /admin
 
-Sitemap: https://sowmiyan-s.vercel.app/sitemap.xml
+Sitemap: https://sowmiyan-s.lovable.app/sitemap.xml

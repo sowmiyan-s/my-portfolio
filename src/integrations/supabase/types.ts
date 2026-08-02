@@ -118,7 +118,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_vote_count: { Args: never; Returns: number }
+      has_voted: { Args: { _voter_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

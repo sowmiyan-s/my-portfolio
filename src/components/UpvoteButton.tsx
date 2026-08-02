@@ -72,10 +72,10 @@ async function fetchRemoteCount(): Promise<number> {
     if (data && typeof data.count === "number") return data.count;
   } catch { /* fall through */ }
 
-  // Direct table fallback
+  // Aggregate-only fallback (no voter identifiers are exposed publicly)
   try {
-    const { count: c } = await supabase.from("site_votes").select("*", { count: "exact", head: true });
-    if (typeof c === "number") return c;
+    const { data, error } = await (supabase as any).rpc("get_vote_count");
+    if (!error && typeof data === "number") return data;
   } catch { /* fall through */ }
 
   return -1; // signals "could not reach DB"
@@ -226,8 +226,7 @@ const UpvoteButton = () => {
           new CustomEvent("site-vote-changed", { detail: { count: data.count, voted: true } })
         );
       } else {
-        // Edge Function unavailable — direct DB insert + re-read exact count
-        await supabase.from("site_votes").upsert({ voter_id: voterId }, { onConflict: "voter_id" });
+        // Edge Function returned no count — re-read the aggregate count
         const dbCount = await fetchRemoteCount();
         if (dbCount >= 0) {
           setCount(dbCount);
@@ -240,7 +239,6 @@ const UpvoteButton = () => {
     } catch (err) {
       console.warn("Vote write notice:", err);
       try {
-        await supabase.from("site_votes").upsert({ voter_id: voterId }, { onConflict: "voter_id" });
         const dbCount = await fetchRemoteCount();
         if (dbCount >= 0) {
           setCount(dbCount);

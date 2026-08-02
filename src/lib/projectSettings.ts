@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { adminCall } from "@/lib/adminApi";
 
 const LS_HIDDEN_KEY = "sw_hidden_projects";
 const LS_FEATURED_KEY = "sw_featured_projects";
@@ -9,161 +10,130 @@ export interface FeaturedProject {
   position: number;
 }
 
-export function getLocalHiddenIds(): number[] {
+/* --------------------------------- cache --------------------------------- */
+/* The database is the single source of truth. localStorage is only an offline
+   cache so the first paint is instant — it never overrides remote data.      */
+
+function readCache<T>(key: string, fallback: T): T {
   try {
-    const raw = localStorage.getItem(LS_HIDDEN_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
   } catch {
-    return [];
+    return fallback;
   }
 }
 
-export function setLocalHiddenIds(ids: number[]) {
+function writeCache(key: string, value: unknown) {
   try {
-    const serialized = JSON.stringify(ids);
-    const existing = localStorage.getItem(LS_HIDDEN_KEY);
-    if (existing === serialized) return;
-    localStorage.setItem(LS_HIDDEN_KEY, serialized);
+    const serialized = JSON.stringify(value);
+    if (localStorage.getItem(key) === serialized) return;
+    localStorage.setItem(key, serialized);
     window.dispatchEvent(new CustomEvent("portfolio-config-changed"));
   } catch (e) {
-    console.warn("Failed to set local hidden ids:", e);
+    console.warn("Failed to cache portfolio config:", e);
   }
+}
+
+export function getLocalHiddenIds(): number[] {
+  return readCache<number[]>(LS_HIDDEN_KEY, []);
 }
 
 export function getLocalFeatured(): FeaturedProject[] {
-  try {
-    const raw = localStorage.getItem(LS_FEATURED_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
+  return readCache<FeaturedProject[]>(LS_FEATURED_KEY, []);
 }
 
-export function setLocalFeatured(featured: FeaturedProject[]) {
-  try {
-    const serialized = JSON.stringify(featured);
-    const existing = localStorage.getItem(LS_FEATURED_KEY);
-    if (existing === serialized) return;
-    localStorage.setItem(LS_FEATURED_KEY, serialized);
-    window.dispatchEvent(new CustomEvent("portfolio-config-changed"));
-  } catch (e) {
-    console.warn("Failed to set local featured projects:", e);
-  }
-}
+/* --------------------------------- reads --------------------------------- */
 
 export async function fetchHiddenProjectIds(): Promise<number[]> {
-  const local = getLocalHiddenIds();
   try {
     const { data, error } = await supabase.from("hidden_projects").select("github_repo_id");
     if (!error && data) {
-      const remoteIds = data.map((r: any) => r.github_repo_id);
-      const merged = Array.from(new Set([...local, ...remoteIds]));
-      setLocalHiddenIds(merged);
-      return merged;
+      const ids = data.map((r: any) => r.github_repo_id as number);
+      writeCache(LS_HIDDEN_KEY, ids);
+      return ids;
     }
   } catch (err) {
-    console.warn("Error fetching remote hidden_projects:", err);
+    console.warn("Error fetching hidden_projects:", err);
   }
-  return local;
+  return getLocalHiddenIds();
 }
 
 export async function fetchFeaturedProjects(): Promise<FeaturedProject[]> {
-  const local = getLocalFeatured();
   try {
     const { data, error } = await supabase
       .from("featured_projects")
       .select("github_repo_id, repo_name, position")
       .order("position", { ascending: true });
-    if (!error && data && data.length > 0) {
+    if (!error && data) {
       const remote = data.map((r: any) => ({
-        id: r.github_repo_id,
-        repo_name: r.repo_name,
-        position: r.position ?? 0,
+        id: r.github_repo_id as number,
+        repo_name: r.repo_name as string,
+        position: (r.position ?? 0) as number,
       }));
-      setLocalFeatured(remote);
+      writeCache(LS_FEATURED_KEY, remote);
       return remote;
     }
   } catch (err) {
-    console.warn("Error fetching remote featured_projects:", err);
+    console.warn("Error fetching featured_projects:", err);
   }
-  return local;
+  return getLocalFeatured();
 }
 
-export async function toggleHiddenProjectDb(id: number, repoName: string, currentlyHidden: boolean): Promise<number[]> {
-  const current = getLocalHiddenIds();
-  let next: number[];
-  if (currentlyHidden) {
-    next = current.filter((hId) => hId !== id);
-  } else {
-    next = Array.from(new Set([...current, id]));
-  }
-  setLocalHiddenIds(next);
+/* --------------------------------- writes -------------------------------- */
+/* All writes go through the admin edge function (service role + password), so
+   the tables stay locked down for anonymous visitors.                        */
 
-  try {
-    if (currentlyHidden) {
-      await supabase.from("hidden_projects").delete().eq("github_repo_id", id);
-    } else {
-      await supabase.from("hidden_projects").insert({ github_repo_id: id, repo_name: repoName });
-    }
-  } catch (err) {
-    console.warn("Supabase toggleHiddenProject failed, local state preserved:", err);
-  }
+async function persistHidden(ids: number[], repoMap: Record<number, string>) {
+  await adminCall("set_hidden", {
+    rows: ids.map((id) => ({ github_repo_id: id, repo_name: repoMap[id] ?? "" })),
+  });
+  writeCache(LS_HIDDEN_KEY, ids);
+}
 
+export async function toggleHiddenProjectDb(
+  id: number,
+  repoName: string,
+  currentlyHidden: boolean,
+  currentHidden?: number[],
+): Promise<number[]> {
+  const current = currentHidden ?? (await fetchHiddenProjectIds());
+  const next = currentlyHidden
+    ? current.filter((hId) => hId !== id)
+    : Array.from(new Set([...current, id]));
+
+  const repoMap: Record<number, string> = { [id]: repoName };
+  await persistHidden(next, repoMap);
   return next;
 }
 
-export async function setAllHiddenProjectsDb(ids: number[], repoMap: Record<number, string>): Promise<number[]> {
-  setLocalHiddenIds(ids);
-  try {
-    if (ids.length === 0) {
-      await supabase.from("hidden_projects").delete().neq("github_repo_id", -1);
-    } else {
-      const rows = ids.map((id) => ({ github_repo_id: id, repo_name: repoMap[id] || "" }));
-      await supabase.from("hidden_projects").upsert(rows, { onConflict: "github_repo_id" });
-    }
-  } catch (err) {
-    console.warn("Supabase setAllHiddenProjects failed, local state preserved:", err);
-  }
+export async function setAllHiddenProjectsDb(
+  ids: number[],
+  repoMap: Record<number, string>,
+): Promise<number[]> {
+  await persistHidden(ids, repoMap);
   return ids;
 }
 
-export async function toggleFeaturedProjectDb(repo: { id: number; name: string }, currentFeatured: FeaturedProject[]): Promise<FeaturedProject[]> {
+export async function toggleFeaturedProjectDb(
+  repo: { id: number; name: string },
+  currentFeatured: FeaturedProject[],
+): Promise<FeaturedProject[]> {
   const exists = currentFeatured.some((f) => f.id === repo.id);
   let next: FeaturedProject[];
+
   if (exists) {
     next = currentFeatured.filter((f) => f.id !== repo.id);
-    setLocalFeatured(next);
-    try {
-      await supabase.from("featured_projects").delete().eq("github_repo_id", repo.id);
-    } catch (err) {
-      console.warn("Supabase delete featured failed:", err);
-    }
   } else {
     if (currentFeatured.length >= 3) return currentFeatured;
-    const position = currentFeatured.length;
-    const newItem = { id: repo.id, repo_name: repo.name, position };
-    next = [...currentFeatured, newItem];
-    setLocalFeatured(next);
-    try {
-      await supabase.from("featured_projects").insert({ github_repo_id: repo.id, repo_name: repo.name, position });
-    } catch (err) {
-      console.warn("Supabase insert featured failed:", err);
-    }
+    next = [...currentFeatured, { id: repo.id, repo_name: repo.name, position: currentFeatured.length }];
   }
-  return next;
+
+  return updateFeaturedOrderDb(next);
 }
 
 export async function updateFeaturedOrderDb(nextFeatured: FeaturedProject[]): Promise<FeaturedProject[]> {
   const withPos = nextFeatured.map((f, i) => ({ ...f, position: i }));
-  setLocalFeatured(withPos);
-  try {
-    await Promise.all(
-      withPos.map((f) =>
-        supabase.from("featured_projects").update({ position: f.position }).eq("github_repo_id", f.id)
-      )
-    );
-  } catch (err) {
-    console.warn("Supabase update featured order failed:", err);
-  }
+  await adminCall("set_featured", { items: withPos });
+  writeCache(LS_FEATURED_KEY, withPos);
   return withPos;
 }
