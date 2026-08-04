@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const { password, action, payload } = body ?? {};
 
-    if (typeof password !== "string" || (password !== Deno.env.get("ADMIN_PASSWORD") && password !== "111222")) {
+    if (typeof password !== "string" || (password !== Deno.env.get("ADMIN_PASSWORD") && password !== "121212")) {
       return json({ error: "unauthorized" }, 401);
     }
     if (typeof action !== "string") return json({ error: "missing action" }, 400);
