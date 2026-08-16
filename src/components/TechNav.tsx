@@ -71,19 +71,8 @@ const TechNav = () => {
                     {open ? <X size={18} /> : <Menu size={18} />}
                 </button>
 
-                {/* Right: status + resume (desktop) */}
+                {/* Right: resume (desktop) */}
                 <div className="hidden lg:flex items-center gap-6 lg:flex-1 justify-end">
-                    <div 
-                        onClick={handleStatusClick}
-                        className="flex flex-col text-right items-end opacity-70 cursor-pointer select-none"
-                    >
-                        <span className="text-[7px] font-mono uppercase text-red-500/80">Status_Operational</span>
-                        <div className="flex gap-2 items-center">
-                            <div className="w-1 h-1 bg-red-600 animate-pulse rounded-full" />
-                            <span className="text-[8px] font-mono whitespace-nowrap tracking-widest leading-none text-white/95">SEC-RED // CHN</span>
-                        </div>
-                    </div>
-
                     <a
                         href={RESUME_URL}
                         target="_blank"

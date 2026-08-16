@@ -11,11 +11,11 @@ import RedCrackPattern from '@/components/RedCrackPattern';
 import MarqueeSection from '@/components/MarqueeSection';
 
 const achievements = [
-  { type: 'PATENT', title: 'SMART DUSTBIN', desc: 'Integrated IoT-based waste monitoring & automated collection protocol.', icon: '⚙️' },
-  { type: 'AWARD', title: 'HACKATHON RUNNER UP', desc: 'Secured 2nd prize in inter-college coding sprint among 20+ teams.', icon: '🏆' },
-  { type: 'WORKSHOP', title: 'GEN AI WORKSHOP', desc: 'Orchestrated generative AI technical session for 50+ students.', icon: '🎓' },
-  { type: 'BOOK', title: 'BOOK AUTHOR', desc: 'Architected and published "Python for Beginners" technical manual.', icon: '📖' },
-  { type: 'PAPER', title: 'CYBER CRIME RESEARCH', desc: 'Research paper published in IJCRT on digital threat vectors.', icon: '📄' },
+  { type: 'PATENT', title: 'SMART DUSTBIN', desc: 'Integrated IoT-based waste monitoring & automated collection protocol.' },
+  { type: 'AWARD', title: 'HACKATHON RUNNER UP', desc: 'Secured 2nd prize in inter-college coding sprint among 20+ teams.' },
+  { type: 'WORKSHOP', title: 'GEN AI WORKSHOP', desc: 'Orchestrated generative AI technical session for 50+ students.' },
+  { type: 'BOOK', title: 'BOOK AUTHOR', desc: 'Architected and published "Python for Beginners" technical manual.' },
+  { type: 'PAPER', title: 'CYBER CRIME RESEARCH', desc: 'Research paper published in IJCRT on digital threat vectors.' },
 ];
 
 // Certifications are loaded dynamically from certificatesList utility
@@ -93,18 +93,31 @@ const AchievementsPage = () => {
                 <motion.div
                   key={i}
                   variants={itemVariants}
-                  whileHover={{ y: -4, borderColor: 'hsl(var(--primary) / 0.5)' }}
-                  className="glass-strong p-8 flex flex-col gap-4 group transition-all duration-300 hover:shadow-[0_0_30px_hsl(var(--primary)/0.15)]"
+                  whileHover={{ y: -6, scale: 1.01 }}
+                  className="relative p-6 md:p-8 flex flex-col justify-between gap-5 border border-white/10 bg-neutral-950/80 backdrop-blur-xl rounded-2xl group transition-all duration-300 hover:border-red-600/60 hover:shadow-[0_0_35px_rgba(239,68,68,0.2)] overflow-hidden"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono text-primary border border-primary/30 px-3 py-1 uppercase tracking-widest">
-                      {item.type}
-                    </span>
+                  <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-red-600/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono font-bold text-red-500 bg-red-600/10 border border-red-500/30 px-3 py-1 uppercase tracking-widest rounded-full">
+                        {item.type}
+                      </span>
+                    </div>
+
+                    <h3 className="text-xl font-heading font-black text-white uppercase tracking-tight group-hover:text-red-500 transition-colors leading-tight">
+                      {item.title}
+                    </h3>
+
+                    <p className="text-xs font-mono text-white/70 leading-relaxed">
+                      {item.desc}
+                    </p>
                   </div>
-                  <h3 className="text-lg font-heading font-bold uppercase tracking-tight group-hover:text-primary transition-colors">
-                    {item.title}
-                  </h3>
-                  <p className="text-xs font-mono text-muted-foreground uppercase leading-relaxed">{item.desc}</p>
+
+                  <div className="pt-4 border-t border-white/10 flex items-center justify-between text-[10px] font-mono text-white/40 uppercase tracking-widest group-hover:text-red-500/80 transition-colors">
+                    <span>RECORD // VERIFIED</span>
+                    <span className="group-hover:translate-x-1 transition-transform">→</span>
+                  </div>
                 </motion.div>
               ))}
             </motion.div>

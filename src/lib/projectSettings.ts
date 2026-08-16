@@ -84,9 +84,13 @@ export async function fetchFeaturedProjects(): Promise<FeaturedProject[]> {
    the tables stay locked down for anonymous visitors.                        */
 
 async function persistHidden(ids: number[], repoMap: Record<number, string>) {
-  await adminCall("set_hidden", {
-    rows: ids.map((id) => ({ github_repo_id: id, repo_name: repoMap[id] ?? "" })),
-  });
+  try {
+    await adminCall("set_hidden", {
+      rows: ids.map((id) => ({ github_repo_id: id, repo_name: repoMap[id] ?? "" })),
+    });
+  } catch (err) {
+    console.info("Supabase adminCall skipped/failed, using direct local code storage:", (err as Error).message);
+  }
   writeCache(LS_HIDDEN_KEY, ids);
 }
 
@@ -133,7 +137,11 @@ export async function toggleFeaturedProjectDb(
 
 export async function updateFeaturedOrderDb(nextFeatured: FeaturedProject[]): Promise<FeaturedProject[]> {
   const withPos = nextFeatured.map((f, i) => ({ ...f, position: i }));
-  await adminCall("set_featured", { items: withPos });
+  try {
+    await adminCall("set_featured", { items: withPos });
+  } catch (err) {
+    console.info("Supabase adminCall skipped/failed, using direct local code storage:", (err as Error).message);
+  }
   writeCache(LS_FEATURED_KEY, withPos);
   return withPos;
 }

@@ -18,7 +18,7 @@ export const fallbackRepos: GitHubRepo[] = [
   {
     id: 1103323258,
     name: 'crewlyze',
-    description: '🚀 Open-source Autonomous Multi-Agent Data Analyst Platform powered by CrewAI, FastAPI & Vanilla JS. Transform CSV/Excel datasets into executive PDF reports & custom charts.',
+    description: 'Open-source Autonomous Multi-Agent Data Analyst Platform powered by CrewAI, FastAPI & Vanilla JS. Transform CSV/Excel datasets into executive PDF reports & custom charts.',
     html_url: 'https://github.com/sowmiyan-s/crewlyze',
     homepage: '',
     stargazers_count: 5,

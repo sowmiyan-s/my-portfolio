@@ -396,20 +396,20 @@ const ThemeAndEasterEgg = () => {
           if (next.endsWith("cheats")) {
             playSynthBeep(750, 0.2, "sine");
             console.table({
-              "Code": ["hack", "konami ↑↑↓↓←→←→BA", "matrix", "rainbow", "neon", "midnight", "gravity", "glitch", "doabarrelroll", "disco", "resume", "sudo"],
+              "Code": ["hack", "konami", "matrix", "rainbow", "neon", "midnight", "gravity", "glitch", "doabarrelroll", "disco", "resume", "sudo"],
               "Effect": [
-                "🔓 Decrypt firewall game → unlocks PHANTOM theme",
-                "🎆 Massive confetti fireworks explosion",
-                "🟢 Full-screen Matrix digital rain + green theme",
-                "🌈 Secret rainbow cycling theme (not in settings)",
-                "💗 Secret neon pink theme (not in settings)",
-                "🌊 Secret midnight teal theme (not in settings)",
-                "⬇️ All sections fall with gravity + bounce back",
-                "📺 Dramatic screen signal corruption",
-                "🔄 Spin the entire page 360°",
-                "🪩 Rapid disco color flash party",
-                "📄 Open Sowmiyan's resume",
-                "🚫 Security rejection message"
+                "Decrypt firewall game -> unlocks PHANTOM theme",
+                "Massive confetti fireworks explosion",
+                "Full-screen Matrix digital rain + green theme",
+                "Secret rainbow cycling theme (not in settings)",
+                "Secret neon pink theme (not in settings)",
+                "Secret midnight teal theme (not in settings)",
+                "All sections fall with gravity + bounce back",
+                "Dramatic screen signal corruption",
+                "Spin the entire page 360",
+                "Rapid disco color flash party",
+                "Open Sowmiyan's resume",
+                "Security rejection message"
               ]
             });
             showAlert("CHEAT_CODES_DUMPED", "ALL SECRET CODES LOGGED TO DEVTOOLS CONSOLE (F12).");
@@ -457,18 +457,10 @@ const ThemeAndEasterEgg = () => {
     };
   }, [showAlert, startHackingGame]);
 
-  const toggleAudio = () => {
-    const nextMuted = !audioMuted;
-    setAudioMuted(nextMuted);
-    localStorage.setItem('sowmiyan-portfolio-audio-muted', nextMuted ? 'true' : 'false');
-    if (!nextMuted) playSynthBeep(800, 0.08, "sine");
-    showAlert(nextMuted ? "AUDIO_OFFLINE" : "AUDIO_ONLINE", nextMuted ? "SYSTEM AUDIO MUTED." : "SYNTH AUDIO SYSTEMS ENGAGED.");
-  };
-
   // All themes for panel (base + unlocked secrets)
   const allPanelThemes = [
     ...themes,
-    ...(phantomUnlocked ? [{ id: 'phantom', name: '🔒 PHANTOM', color: secretThemes.phantom.color }] : []),
+    ...(phantomUnlocked ? [{ id: 'phantom', name: 'PHANTOM', color: secretThemes.phantom.color }] : []),
   ];
 
   return (
@@ -481,14 +473,6 @@ const ThemeAndEasterEgg = () => {
           title="System configuration"
         >
           <Settings size={18} className={panelOpen ? 'animate-spin' : ''} />
-        </button>
-
-        <button
-          onClick={toggleAudio}
-          className="w-10 h-10 rounded-full bg-black border border-red-500/30 flex items-center justify-center text-red-500 hover:border-red-500 hover:bg-red-950/20 transition-all shadow-[0_0_12px_rgba(239,68,68,0.2)] focus:outline-none"
-          title={audioMuted ? "Unmute" : "Mute"}
-        >
-          {audioMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
         </button>
 
         <AnimatePresence>

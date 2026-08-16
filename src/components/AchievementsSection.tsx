@@ -29,15 +29,15 @@ const AchievementsSection = () => {
                     {/* Achievements List */}
                     <div className="flex flex-col gap-4">
                         {achievements.map((item, i) => (
-                            <div key={i} className="flex items-center gap-6 p-4 border border-white/5 hover:border-red-600/50 transition-all bg-black/20 group">
-                                <span className="text-[10px] font-mono text-red-600 border border-red-600/30 px-2 py-1 w-20 text-center">
+                            <div key={i} className="flex items-center gap-5 p-5 border border-white/10 bg-neutral-950/80 backdrop-blur-xl rounded-xl hover:border-red-600/50 hover:shadow-[0_0_25px_rgba(239,68,68,0.15)] transition-all duration-300 group">
+                                <span className="text-[10px] font-mono font-bold text-red-500 bg-red-600/10 border border-red-500/30 px-3 py-1.5 rounded-lg shrink-0 uppercase tracking-widest">
                                     {item.type}
                                 </span>
                                 <div className="flex flex-col flex-1">
-                                    <h3 className="text-sm font-heading font-bold uppercase group-hover:text-red-600 transition-colors">{item.title}</h3>
-                                    <p className="text-[10px] font-mono opacity-40 uppercase">{item.desc}</p>
+                                    <h3 className="text-sm font-heading font-black uppercase text-white group-hover:text-red-500 transition-colors">{item.title}</h3>
+                                    <p className="text-[11px] font-mono text-white/60 leading-normal">{item.desc}</p>
                                 </div>
-                                <span className="text-[8px] font-mono opacity-20 group-hover:opacity-40">{item.hash}</span>
+                                <span className="text-[9px] font-mono text-white/30 group-hover:text-red-500/60 transition-colors shrink-0">{item.hash}</span>
                             </div>
                         ))}
                     </div>

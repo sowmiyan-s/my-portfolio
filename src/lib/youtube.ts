@@ -31,7 +31,7 @@ export const fallbackVideos: YouTubeVideo[] = [
   },
   {
     id: "OBDyu3Q0IlE",
-    title: "You’re Using Claude AI WRONG! 😱 Build Stunning Websites with Claude Skills + Antigravity (Tamil)",
+    title: "You’re Using Claude AI WRONG! Build Stunning Websites with Claude Skills + Antigravity (Tamil)",
     url: "https://www.youtube.com/watch?v=OBDyu3Q0IlE",
     thumbnail: "https://i.ytimg.com/vi/OBDyu3Q0IlE/hqdefault.jpg",
     category: "AI TOOLS",
@@ -39,7 +39,7 @@ export const fallbackVideos: YouTubeVideo[] = [
   },
   {
     id: "XQ0P4LA_4Ac",
-    title: "Google Antigravity Explained 🔥 IDE vs 2.0 vs CLI in Tamil #geminiai #vibecoding",
+    title: "Google Antigravity Explained: IDE vs 2.0 vs CLI in Tamil #geminiai #vibecoding",
     url: "https://www.youtube.com/watch?v=XQ0P4LA_4Ac",
     thumbnail: "https://i.ytimg.com/vi/XQ0P4LA_4Ac/hqdefault.jpg",
     category: "AI IDE",
@@ -55,7 +55,7 @@ export const fallbackVideos: YouTubeVideo[] = [
   },
   {
     id: "VBFx-VX8B3M",
-    title: "🚀 1-Day Workshop: Bring Your Website Online with AI 🌐 | Free Learning 🎓",
+    title: "1-Day Workshop: Bring Your Website Online with AI | Free Learning",
     url: "https://www.youtube.com/watch?v=VBFx-VX8B3M",
     thumbnail: "https://i.ytimg.com/vi/VBFx-VX8B3M/hqdefault.jpg",
     category: "TUTORIAL",
@@ -71,7 +71,7 @@ export const fallbackVideos: YouTubeVideo[] = [
   },
   {
     id: "GvURQYzIv0U",
-    title: "🚀 GPT-5 Is Here: The Most Powerful AI Ever Built (Full Breakdown)",
+    title: "GPT-5 Is Here: The Most Powerful AI Ever Built (Full Breakdown)",
     url: "https://www.youtube.com/watch?v=GvURQYzIv0U",
     thumbnail: "https://i.ytimg.com/vi/GvURQYzIv0U/hqdefault.jpg",
     category: "AI TOOLS",
@@ -87,7 +87,7 @@ export const fallbackVideos: YouTubeVideo[] = [
   },
   {
     id: "hYieCwUjOyQ",
-    title: "🔥 Top 10 Best DSA Practice Websites in 2025 | From Beginner to Pro 🔥",
+    title: "Top 10 Best DSA Practice Websites in 2025 | From Beginner to Pro",
     url: "https://www.youtube.com/watch?v=hYieCwUjOyQ",
     thumbnail: "https://i.ytimg.com/vi/hYieCwUjOyQ/hqdefault.jpg",
     category: "TUTORIAL",
