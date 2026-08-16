@@ -194,15 +194,15 @@ const ProjectCard = ({ project, index, side, onClick }: { project: any, index: n
           </h3>
 
           {/* Sci-Fi Monospace Typewriter Diagnostic Readouts */}
-          <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 font-mono text-[9px] text-white/40 uppercase mb-4 border-l-2 border-red-600/30 pl-3">
-            <div className="flex justify-between"><span>[STATUS]</span> <span className="text-red-500">DEPLOYED</span></div>
-            <div className="flex justify-between"><span>[LANGUAGE]</span> <span className="text-white/70">{project.tech[0] || 'N/A'}</span></div>
-            <div className="flex justify-between"><span>[STARS]</span> <span className="text-yellow-500 font-bold">{project.stars.toString().padStart(3, '0')}</span></div>
-            <div className="flex justify-between"><span>[FORKS]</span> <span className="text-white/60">{project.forks.toString().padStart(3, '0')}</span></div>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 font-mono text-[10px] text-white/80 uppercase mb-4 border-l-2 border-red-600 pl-3 bg-black/60 p-2.5 rounded-lg border border-white/10">
+            <div className="flex justify-between"><span>[STATUS]</span> <span className="text-red-500 font-bold">DEPLOYED</span></div>
+            <div className="flex justify-between"><span>[LANGUAGE]</span> <span className="text-white font-bold">{project.tech[0] || 'N/A'}</span></div>
+            <div className="flex justify-between"><span>[STARS]</span> <span className="text-yellow-400 font-bold">{project.stars.toString().padStart(3, '0')}</span></div>
+            <div className="flex justify-between"><span>[FORKS]</span> <span className="text-white font-bold">{project.forks.toString().padStart(3, '0')}</span></div>
           </div>
 
           {/* Description */}
-          <p className="text-white/70 text-xs md:text-sm leading-relaxed mb-6 font-light group-hover:text-white/90 transition-colors duration-300">
+          <p className="text-white text-xs md:text-sm leading-relaxed mb-6 font-normal group-hover:text-white transition-colors duration-300">
             {project.description}
           </p>
 
@@ -213,7 +213,7 @@ const ProjectCard = ({ project, index, side, onClick }: { project: any, index: n
               {project.tech.map((t: string) => (
                 <span
                   key={t}
-                  className="text-[9px] px-2 py-0.5 bg-white/[0.04] border border-white/10 rounded-md font-mono text-white/40 uppercase tracking-widest group-hover:bg-red-950/40 group-hover:border-red-500/40 group-hover:text-red-300 transition-all duration-300"
+                  className="text-[10px] px-2.5 py-1 bg-red-600/10 border border-red-500/30 rounded-md font-mono text-red-400 font-bold uppercase tracking-widest group-hover:bg-red-600 group-hover:text-white transition-all duration-300"
                 >
                   {t}
                 </span>
@@ -221,8 +221,8 @@ const ProjectCard = ({ project, index, side, onClick }: { project: any, index: n
             </div>
 
             {/* Footer link */}
-            <div className="flex items-center justify-between border-t border-white/5 pt-4 group-hover:border-red-500/20 transition-colors duration-300">
-              <span className="text-[9px] font-mono text-white/20 group-hover:text-red-400/40 transition-colors">
+            <div className="flex items-center justify-between border-t border-white/10 pt-4 group-hover:border-red-500/30 transition-colors duration-300">
+              <span className="text-[10px] font-mono text-white/60 font-bold group-hover:text-red-400 transition-colors">
                 MAINFRAME_CONNECTED // YES
               </span>
 
@@ -232,9 +232,9 @@ const ProjectCard = ({ project, index, side, onClick }: { project: any, index: n
                 target="_blank"
                 rel="noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="flex items-center justify-center p-2 rounded-lg bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 group-hover:bg-red-700 group-hover:border-red-500 group-hover:text-white transition-all shadow-lg"
+                className="flex items-center justify-center px-3 py-1.5 rounded-lg bg-red-600 border border-red-500 text-white font-bold hover:bg-white hover:text-black transition-all shadow-lg text-[10px] tracking-wider"
               >
-                <Github size={13} />
+                <Github size={13} className="mr-1.5" /> REPO
               </a>
             </div>
           </div>

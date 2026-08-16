@@ -6,11 +6,14 @@ import { formatRepoName } from '@/lib/formatRepo';
 import { useRealtimeRefetch } from '@/hooks/useRealtimeRefetch';
 import {
     fetchHiddenProjectIds,
-    fetchFeaturedProjects,
+    fetchHomeFeaturedProjects,
+    fetchPageFeaturedProjects,
     toggleHiddenProjectDb,
     setAllHiddenProjectsDb,
-    toggleFeaturedProjectDb,
-    updateFeaturedOrderDb,
+    toggleHomeFeaturedProjectDb,
+    togglePageFeaturedProjectDb,
+    updateHomeFeaturedOrderDb,
+    updatePageFeaturedOrderDb,
     FeaturedProject
 } from '@/lib/projectSettings';
 import { adminCall, verifyAdminPassword, setAdminPassword, clearAdminPassword, getAdminPassword } from '@/lib/adminApi';
@@ -34,7 +37,8 @@ const Admin = () => {
 
     const [repos, setRepos] = useState<GitHubRepo[]>([]);
     const [hiddenIds, setHiddenIds] = useState<number[]>([]);
-    const [featured, setFeatured] = useState<FeaturedProject[]>([]);
+    const [homeFeatured, setHomeFeatured] = useState<FeaturedProject[]>([]);
+    const [pageFeatured, setPageFeatured] = useState<FeaturedProject[]>([]);
     const [loading, setLoading] = useState(true);
     const [techSkills, setTechSkills] = useState<{ id: string; name: string }[]>([]);
     const [nonTechSkills, setNonTechSkills] = useState<{ id: string; name: string }[]>([]);
@@ -55,20 +59,23 @@ const Admin = () => {
     const importInputRef = useRef<HTMLInputElement>(null);
 
 
-    const featuredIds = featured.map(f => f.id);
+    const homeFeaturedIds = homeFeatured.map(f => f.id);
+    const pageFeaturedIds = pageFeatured.map(f => f.id);
 
     const loadData = async () => {
         setLoading(true);
-        const [repoData, hiddenList, featuredList, skillRes, settingsRes] = await Promise.all([
+        const [repoData, hiddenList, homeList, pageList, skillRes, settingsRes] = await Promise.all([
             fetchRepos(),
             fetchHiddenProjectIds(),
-            fetchFeaturedProjects(),
+            fetchHomeFeaturedProjects(),
+            fetchPageFeaturedProjects(),
             supabase.from('skills').select('id, name, category'),
             supabase.from('site_settings').select('key, value'),
         ]);
         setRepos(repoData);
         setHiddenIds(hiddenList);
-        setFeatured(featuredList);
+        setHomeFeatured(homeList);
+        setPageFeatured(pageList);
         setTechSkills((skillRes.data ?? []).filter((s: any) => s.category === 'tech').map((s: any) => ({ id: s.id, name: s.name })));
         setNonTechSkills((skillRes.data ?? []).filter((s: any) => s.category === 'non-tech').map((s: any) => ({ id: s.id, name: s.name })));
         for (const row of settingsRes.data ?? []) {
@@ -85,30 +92,57 @@ const Admin = () => {
         setVideosLoading(false);
     };
 
-    const toggleFeatured = async (repo: GitHubRepo) => {
-        const isFeatured = featuredIds.includes(repo.id);
-        if (!isFeatured && featured.length >= 3) {
-            toast({ title: 'Limit reached', description: 'Max 3 featured projects.' });
+    const toggleHomeFeatured = async (repo: GitHubRepo) => {
+        const isFeatured = homeFeaturedIds.includes(repo.id);
+        if (!isFeatured && homeFeatured.length >= 3) {
+            toast({ title: 'Limit reached', description: 'Max 3 Home featured projects.' });
             return;
         }
         try {
-            const updated = await toggleFeaturedProjectDb({ id: repo.id, name: repo.name }, featured);
-            setFeatured(updated);
-            toast({ title: isFeatured ? 'Unfeatured' : '★ Featured', description: formatRepoName(repo.name) });
+            const updated = await toggleHomeFeaturedProjectDb({ id: repo.id, name: repo.name }, homeFeatured);
+            setHomeFeatured(updated);
+            toast({ title: isFeatured ? 'Removed from Home' : '★ Added to Home Featured', description: formatRepoName(repo.name) });
         } catch (err) {
             toast({ title: 'Save failed', description: (err as Error).message });
         }
     };
 
+    const togglePageFeatured = async (repo: GitHubRepo) => {
+        const isFeatured = pageFeaturedIds.includes(repo.id);
+        if (!isFeatured && pageFeatured.length >= 5) {
+            toast({ title: 'Limit reached', description: 'Max 5 Projects Page featured projects.' });
+            return;
+        }
+        try {
+            const updated = await togglePageFeaturedProjectDb({ id: repo.id, name: repo.name }, pageFeatured);
+            setPageFeatured(updated);
+            toast({ title: isFeatured ? 'Removed from Projects Page' : '🚀 Added to Projects Page Slideshow', description: formatRepoName(repo.name) });
+        } catch (err) {
+            toast({ title: 'Save failed', description: (err as Error).message });
+        }
+    };
 
-    const moveFeatured = async (idx: number, dir: -1 | 1) => {
-        const next = [...featured];
+    const moveHomeFeatured = async (idx: number, dir: -1 | 1) => {
+        const next = [...homeFeatured];
         const target = idx + dir;
         if (target < 0 || target >= next.length) return;
         [next[idx], next[target]] = [next[target], next[idx]];
         try {
-            const updated = await updateFeaturedOrderDb(next);
-            setFeatured(updated);
+            const updated = await updateHomeFeaturedOrderDb(next);
+            setHomeFeatured(updated);
+        } catch (err) {
+            toast({ title: 'Save failed', description: (err as Error).message });
+        }
+    };
+
+    const movePageFeatured = async (idx: number, dir: -1 | 1) => {
+        const next = [...pageFeatured];
+        const target = idx + dir;
+        if (target < 0 || target >= next.length) return;
+        [next[idx], next[target]] = [next[target], next[idx]];
+        try {
+            const updated = await updatePageFeaturedOrderDb(next);
+            setPageFeatured(updated);
         } catch (err) {
             toast({ title: 'Save failed', description: (err as Error).message });
         }
@@ -455,51 +489,83 @@ const Admin = () => {
                                 </select>
                             </div>
 
-                            {/* Featured order */}
-                            {featured.length > 0 && (
-                                <div className="border border-yellow-500/30 bg-yellow-500/5 p-4 flex flex-col gap-2">
+                            {/* Dual Featured Order Controls */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Home Featured (Max 3) */}
+                                <div className="border border-yellow-500/30 bg-yellow-500/5 p-4 flex flex-col gap-2 rounded-lg">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-[10px] font-mono uppercase tracking-widest text-yellow-500">★ Featured Order ({featured.length}/3)</span>
-                                        <span className="text-[9px] font-mono opacity-40 uppercase">Homepage slider order</span>
+                                        <span className="text-[10px] font-mono uppercase tracking-widest text-yellow-400 font-bold">★ Home Page Featured ({homeFeatured.length}/3)</span>
+                                        <span className="text-[9px] font-mono opacity-60 text-white uppercase">Homepage Slider</span>
                                     </div>
-                                    {featured.map((f, i) => (
-                                        <div key={f.id} className="flex items-center gap-2 py-1.5 px-2 bg-black/40 border border-white/5">
-                                            <span className="text-yellow-500 font-mono text-[10px] w-4">{i + 1}</span>
-                                            <span className="flex-1 text-xs font-heading uppercase tracking-tight truncate">{formatRepoName(f.repo_name)}</span>
-                                            <button onClick={() => moveFeatured(i, -1)} disabled={i === 0} className="p-1 border border-white/10 hover:border-yellow-500 hover:text-yellow-500 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"><ArrowUp size={10} /></button>
-                                            <button onClick={() => moveFeatured(i, 1)} disabled={i === featured.length - 1} className="p-1 border border-white/10 hover:border-yellow-500 hover:text-yellow-500 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"><ArrowDown size={10} /></button>
+                                    {homeFeatured.length === 0 ? (
+                                        <div className="text-[9px] font-mono text-white/40 py-2 italic">No projects assigned. Fallback to top 3 starred.</div>
+                                    ) : homeFeatured.map((f, i) => (
+                                        <div key={f.id} className="flex items-center gap-2 py-1.5 px-2 bg-black/60 border border-white/10 rounded">
+                                            <span className="text-yellow-400 font-mono text-[10px] font-bold w-4">{i + 1}</span>
+                                            <span className="flex-1 text-xs font-heading uppercase tracking-tight truncate text-white">{formatRepoName(f.repo_name)}</span>
+                                            <button onClick={() => moveHomeFeatured(i, -1)} disabled={i === 0} className="p-1 border border-white/10 hover:border-yellow-500 hover:text-yellow-500 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"><ArrowUp size={10} /></button>
+                                            <button onClick={() => moveHomeFeatured(i, 1)} disabled={i === homeFeatured.length - 1} className="p-1 border border-white/10 hover:border-yellow-500 hover:text-yellow-500 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"><ArrowDown size={10} /></button>
                                         </div>
                                     ))}
                                 </div>
-                            )}
+
+                                {/* Projects Page Featured (Max 5) */}
+                                <div className="border border-red-500/30 bg-red-500/5 p-4 flex flex-col gap-2 rounded-lg">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[10px] font-mono uppercase tracking-widest text-red-400 font-bold">🚀 Projects Page Slideshow ({pageFeatured.length}/5)</span>
+                                        <span className="text-[9px] font-mono opacity-60 text-white uppercase">Projects Page Hero</span>
+                                    </div>
+                                    {pageFeatured.length === 0 ? (
+                                        <div className="text-[9px] font-mono text-white/40 py-2 italic">No projects assigned. Fallback to top 5 starred.</div>
+                                    ) : pageFeatured.map((f, i) => (
+                                        <div key={f.id} className="flex items-center gap-2 py-1.5 px-2 bg-black/60 border border-white/10 rounded">
+                                            <span className="text-red-400 font-mono text-[10px] font-bold w-4">{i + 1}</span>
+                                            <span className="flex-1 text-xs font-heading uppercase tracking-tight truncate text-white">{formatRepoName(f.repo_name)}</span>
+                                            <button onClick={() => movePageFeatured(i, -1)} disabled={i === 0} className="p-1 border border-white/10 hover:border-red-500 hover:text-red-500 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"><ArrowUp size={10} /></button>
+                                            <button onClick={() => movePageFeatured(i, 1)} disabled={i === pageFeatured.length - 1} className="p-1 border border-white/10 hover:border-red-500 hover:text-red-500 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"><ArrowDown size={10} /></button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                                 {filteredRepos.length === 0 ? (
                                     <div className="col-span-full text-center py-12 text-white/40 font-mono text-xs uppercase">No repositories match.</div>
                                 ) : filteredRepos.map(repo => {
                                     const isHidden = hiddenIds.includes(repo.id);
-                                    const isFeatured = featuredIds.includes(repo.id);
+                                    const isHomeFeat = homeFeaturedIds.includes(repo.id);
+                                    const isPageFeat = pageFeaturedIds.includes(repo.id);
+
                                     return (
-                                        <div key={repo.id} className={`flex flex-col gap-3 p-4 border transition-all ${isHidden ? 'border-white/5 opacity-50 bg-white/5' : isFeatured ? 'border-yellow-500/50 bg-yellow-500/5' : 'border-red-500/30 bg-red-500/5 hover:border-red-500'}`}>
+                                        <div key={repo.id} className={`flex flex-col gap-3 p-4 border transition-all rounded-lg ${isHidden ? 'border-white/10 opacity-50 bg-white/5' : isHomeFeat || isPageFeat ? 'border-red-500/50 bg-red-950/20' : 'border-white/10 bg-black/40 hover:border-white/20'}`}>
                                             <div className="flex justify-between items-start gap-2">
-                                                <h3 className="font-heading font-bold uppercase tracking-tight text-xs flex-1 leading-tight">{formatRepoName(repo.name)}</h3>
-                                                {isHidden ? <EyeOff size={12} className="text-white/40 shrink-0" /> : <Eye size={12} className="text-red-500 shrink-0" />}
+                                                <h3 className="font-heading font-bold uppercase tracking-tight text-xs flex-1 leading-tight text-white">{formatRepoName(repo.name)}</h3>
+                                                {isHidden ? <EyeOff size={12} className="text-white/40 shrink-0" /> : <Eye size={12} className="text-green-500 shrink-0" />}
                                             </div>
-                                            <div className="flex items-center gap-3 text-[9px] font-mono opacity-60">
-                                                {repo.language && <span>{repo.language}</span>}
-                                                {repo.stargazers_count > 0 && <span className="flex items-center gap-1"><Star size={9} /> {repo.stargazers_count}</span>}
-                                                {isFeatured && <span className="text-yellow-500">★ FEATURED</span>}
+                                            <div className="flex items-center gap-2 flex-wrap text-[9px] font-mono opacity-80">
+                                                {repo.language && <span className="text-white/70">{repo.language}</span>}
+                                                {repo.stargazers_count > 0 && <span className="flex items-center gap-1 text-yellow-400 font-bold"><Star size={9} /> {repo.stargazers_count}</span>}
+                                                {isHomeFeat && <span className="text-yellow-400 font-bold bg-yellow-500/10 px-1.5 py-0.5 rounded border border-yellow-500/30">★ HOME</span>}
+                                                {isPageFeat && <span className="text-red-400 font-bold bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/30">🚀 PAGE</span>}
                                             </div>
-                                            <div className="flex gap-1">
-                                                <button onClick={() => toggleProject(repo.id, repo.name)}
-                                                    className={`flex-1 py-2 font-mono text-[9px] uppercase tracking-widest border transition-all ${isHidden ? 'border-white/10 text-white/60 hover:border-red-500 hover:text-red-500' : 'border-red-500 text-red-500 hover:bg-red-500 hover:text-white'}`}>
-                                                    {isHidden ? 'Show' : 'Hide'}
-                                                </button>
-                                                {!isHidden && (
-                                                    <button onClick={() => toggleFeatured(repo)}
-                                                        className={`flex-1 py-2 font-mono text-[9px] uppercase tracking-widest border transition-all ${isFeatured ? 'border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-black' : 'border-white/10 text-white/60 hover:border-yellow-500 hover:text-yellow-500'}`}>
-                                                        {isFeatured ? '★ Unfeature' : '☆ Feature'}
+                                            <div className="flex flex-col gap-1.5 pt-1">
+                                                <div className="flex gap-1">
+                                                    <button onClick={() => toggleProject(repo.id, repo.name)}
+                                                        className={`flex-1 py-1.5 font-mono text-[9px] font-bold uppercase tracking-widest border transition-all rounded ${isHidden ? 'border-green-500 text-green-400 hover:bg-green-500 hover:text-black' : 'border-white/20 text-white/60 hover:border-red-500 hover:text-red-400'}`}>
+                                                        {isHidden ? 'Show' : 'Hide'}
                                                     </button>
+                                                </div>
+                                                {!isHidden && (
+                                                    <div className="flex gap-1">
+                                                        <button onClick={() => toggleHomeFeatured(repo)}
+                                                            className={`flex-1 py-1.5 font-mono text-[8px] font-bold uppercase tracking-wider border transition-all rounded ${isHomeFeat ? 'border-yellow-400 text-yellow-400 bg-yellow-500/20' : 'border-white/10 text-white/60 hover:border-yellow-400 hover:text-yellow-400'}`}>
+                                                            {isHomeFeat ? '★ Home (On)' : '★ Home (3)'}
+                                                        </button>
+                                                        <button onClick={() => togglePageFeatured(repo)}
+                                                            className={`flex-1 py-1.5 font-mono text-[8px] font-bold uppercase tracking-wider border transition-all rounded ${isPageFeat ? 'border-red-400 text-red-400 bg-red-500/20' : 'border-white/10 text-white/60 hover:border-red-400 hover:text-red-400'}`}>
+                                                            {isPageFeat ? '🚀 Page (On)' : '🚀 Page (5)'}
+                                                        </button>
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>

@@ -5,6 +5,8 @@ import TechNav from '@/components/TechNav';
 import Footer from '@/components/Footer';
 import PageHero from '@/components/PageHero';
 import ScrambleText from '@/components/ScrambleText';
+import MagicBento from '@/components/MagicBento';
+import AcidSquares from '@/components/AcidSquares';
 
 const offeringCards = [
     {
@@ -48,9 +50,9 @@ const offeringCards = [
         actionText: "Consult Now",
         actionUrl: "mailto:sowmisowmiyan58@gmail.com?subject=Consulting%20Inquiry%20-%20Tech%20Solutions",
         features: [
-            "AI Workflow Automation",
-            "LangChain / Flowise Setup",
-            "Prompt Tuning / Vector DBs",
+            "LLM & RAG Systems",
+            "Multi-Agent Frameworks",
+            "Vector DB & Embeddings",
             "Performance Tuning",
             "1-on-1 Tech Consulting"
         ]
@@ -59,14 +61,34 @@ const offeringCards = [
 
 const ContactPage = () => {
     return (
-        <div 
-            className="relative min-h-screen text-white selection:bg-red-600 overflow-x-hidden"
-            style={{
-                backgroundColor: '#0c0a0a',
-                backgroundImage: 'repeating-radial-gradient(#0c0a0a 80%, #2f312f 90%, #3f4549 90%)',
-                backgroundSize: '65px 65px'
-            }}
-        >
+        <div className="relative min-h-screen text-white selection:bg-red-600 overflow-x-hidden bg-[#0a0a0a]">
+            {/* Fixed AcidSquares Background */}
+            <div className="fixed inset-0 z-0 pointer-events-none opacity-85">
+                <AcidSquares
+                    color1="#ef4444"
+                    color2="#f87171"
+                    color3="#ffffff"
+                    detail="medium"
+                    speed={0.5}
+                    waveDepth={0.8}
+                    zoom={1.3}
+                    density={10.0}
+                    glow={1.0}
+                    exposure={2500}
+                    spread={0.3}
+                    stepSize={0.002}
+                    colorShift={0}
+                    contrast={1}
+                    brightness={1.0}
+                    opacity={0.85}
+                    mouseInteraction={true}
+                    mouseStrength={0.15}
+                    mouseRadius={0.35}
+                    blur={0}
+                    grain={true}
+                    grainIntensity={0.05}
+                />
+            </div>
             <style dangerouslySetInnerHTML={{ __html: `
                 .contact-card-container {
                     --white: hsl(0, 0%, 100%);
@@ -283,27 +305,30 @@ const ContactPage = () => {
                             </motion.a>
                         </div>
 
-                        {/* Feature Cards Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full items-stretch">
-                            {offeringCards.map((card, i) => {
-                                return (
-                                    <motion.div
-                                        key={i}
-                                        initial={{ opacity: 0, y: 30 }}
-                                        whileInView={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: i * 0.1, duration: 0.6 }}
-                                        viewport={{ once: true }}
-                                        className="contact-card-container"
-                                    >
-                                        <div className="card__border" />
-                                        <div className="card__bg" />
-                                        
-                                        <div className="flex flex-col gap-3 text-left z-10 relative">
-                                            <div className="flex flex-col gap-1">
+                        {/* Feature Cards Grid with MagicBento Effect */}
+                        <MagicBento 
+                            glowColor="239, 68, 68"
+                            enableStars={true}
+                            enableSpotlight={true}
+                            enableBorderGlow={true}
+                            enableTilt={true}
+                            enableMagnetism={true}
+                            clickEffect={true}
+                            spotlightRadius={320}
+                            particleCount={14}
+                            cards={offeringCards.map((card) => ({
+                                title: card.title,
+                                description: card.desc,
+                                label: card.subtitle,
+                                color: '#0a0a0a',
+                                customContent: (
+                                    <div className="flex flex-col justify-between h-full gap-4 relative z-10 w-full">
+                                        <div className="flex flex-col gap-3 text-left">
+                                            <div className="flex justify-between items-center">
                                                 <span className="font-heading text-lg font-black tracking-wider uppercase text-white">
                                                     {card.title}
                                                 </span>
-                                                <span className="font-mono text-[9px] uppercase tracking-widest text-white/40">
+                                                <span className="text-[10px] font-mono uppercase tracking-widest text-red-500 bg-red-600/10 border border-red-500/30 px-2.5 py-1 rounded-full">
                                                     {card.subtitle}
                                                 </span>
                                             </div>
@@ -313,35 +338,31 @@ const ContactPage = () => {
                                             </p>
                                         </div>
 
-                                        <hr className="line border-white/10 my-2 z-10 relative" />
+                                        <hr className="border-white/10 my-1" />
 
-                                        <ul className="card__list z-10 relative">
+                                        <ul className="flex flex-col gap-2 my-auto">
                                             {card.features.map((feat, idx) => (
-                                                <li key={idx} className="card__list_item">
-                                                    <span className="check">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="check_svg">
-                                                            <path fillRule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clipRule="evenodd" />
-                                                        </svg>
-                                                    </span>
-                                                    <span className="list_text">{feat}</span>
+                                                <li key={idx} className="flex items-center gap-2 text-xs font-mono text-white/80">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+                                                    <span>{feat}</span>
                                                 </li>
                                             ))}
                                         </ul>
 
-                                        <div className="z-10 relative mt-4">
+                                        <div className="mt-4">
                                             <a
                                                 href={card.actionUrl}
                                                 target={card.actionUrl.startsWith('http') ? '_blank' : '_self'}
                                                 rel="noreferrer"
-                                                className="block w-full text-center"
+                                                className="block w-full text-center py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-heading font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-[0_0_15px_rgba(239,68,68,0.3)]"
                                             >
-                                                <button className="button-card">{card.actionText}</button>
+                                                {card.actionText} →
                                             </a>
                                         </div>
-                                    </motion.div>
-                                );
-                            })}
-                        </div>
+                                    </div>
+                                )
+                            }))}
+                        />
                     </div>
                 </section>
 

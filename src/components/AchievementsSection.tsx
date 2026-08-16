@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { certificatesList, Certificate } from '@/lib/certificates';
+import ShapeGrid from '@/components/ShapeGrid';
 
 const achievements = [
     { type: 'PATENT', title: 'SMART DUSTBIN (IOT-01)', desc: 'IoT waste monitoring & automated collection protocol.', hash: 'PAT-7729-AX' },
@@ -14,8 +15,8 @@ const AchievementsSection = () => {
     const [selectedCert, setSelectedCert] = useState<Certificate | null>(null);
 
     return (
-        <section id="achievements" className="relative py-24 px-6 grid-bg border-t border-white/10 z-10">
-            <div className="max-w-7xl mx-auto flex flex-col gap-12">
+        <section id="achievements" className="relative py-24 px-6 grid-bg border-t border-white/10 z-10 overflow-hidden">
+            <div className="max-w-7xl mx-auto flex flex-col gap-12 relative z-10">
                 <div className="flex justify-between items-center py-6 border-y border-white/10 mb-8 bg-black/40 px-8 relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-1 h-full bg-red-600" />
                     <div className="flex flex-col">
@@ -44,8 +45,19 @@ const AchievementsSection = () => {
 
                     {/* Certifications & Education */}
                     <div className="flex flex-col gap-12">
-                        <div className="flex flex-col gap-6">
-                            <div className="flex justify-between items-center border-l-2 border-red-600 pl-4 pr-2">
+                        <div className="flex flex-col gap-6 relative p-4 border border-white/10 bg-black/60 rounded-xl overflow-hidden min-h-[300px]">
+                            <div className="absolute inset-0 z-0 pointer-events-auto opacity-100">
+                                <ShapeGrid 
+                                    speed={0.5} 
+                                    squareSize={35}
+                                    direction='diagonal'
+                                    borderColor='rgba(239, 68, 68, 0.55)'
+                                    hoverFillColor='rgba(239, 68, 68, 0.9)'
+                                    shape='square'
+                                    hoverTrailAmount={4}
+                                />
+                            </div>
+                            <div className="flex justify-between items-center border-l-2 border-red-600 pl-4 pr-2 relative z-10">
                                 <span className="text-xs font-mono opacity-40 uppercase tracking-widest">Validated_Certifications</span>
                                 <Link 
                                     to="/achievements" 
@@ -55,7 +67,7 @@ const AchievementsSection = () => {
                                 </Link>
                             </div>
                             
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 relative z-10">
                                 {certificatesList.slice(0, 6).map((cert, i) => (
                                     <div 
                                         key={i} 

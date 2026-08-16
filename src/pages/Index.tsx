@@ -11,7 +11,6 @@ import CustomCursor from "@/components/CustomCursor";
 const Index = () => {
     return (
         <div className="relative min-h-screen bg-black text-white selection:bg-red-600 selection:text-white no-scroll md:overflow-visible">
-            <CustomCursor />
             <CyberBackground />
             <TechNav />
             <main className="relative z-10 font-body">

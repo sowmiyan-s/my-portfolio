@@ -42,10 +42,10 @@ const Hero = () => {
             
             <motion.div style={{ y, opacity }} className="max-w-7xl w-full flex flex-col items-start gap-8 md:gap-12 relative z-20 mt-12 md:mt-16">
                 <div className="flex flex-col items-start gap-4 md:gap-6 w-full text-left">
-                    <div className="relative w-full pr-2 overflow-hidden">
+                    <div className="relative w-fit inline-block overflow-hidden">
                         <h1 
                             onClick={handleTitleClick}
-                            className="text-[clamp(2rem,7vw,8rem)] font-heading font-black leading-[1] tracking-tighter text-white uppercase whitespace-nowrap drop-shadow-[0_0_25px_rgba(255,255,255,0.3)] cursor-pointer select-none"
+                            className="inline-block text-[clamp(2rem,7vw,8rem)] font-heading font-black leading-[1] tracking-tighter text-white uppercase whitespace-nowrap drop-shadow-[0_0_25px_rgba(255,255,255,0.3)] cursor-pointer select-none"
                         >
                             <ScrambleText text="SOWMIYAN S" triggerOnView speed={0.5} delay={0.2} />
                         </h1>

@@ -75,7 +75,7 @@ function createStubSupabaseClient() {
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-const isSupabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY);
+export const isSupabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY);
 
 if (!isSupabaseConfigured) {
   console.warn('Supabase is not configured. The site will run in a degraded mode without remote data sync.');

@@ -11,10 +11,33 @@ import PopularProjectsSlider from "@/components/PopularProjectsSlider";
 import Pattern from "@/components/Pattern";
 import SEOKeywords from "@/components/SEOKeywords";
 import MarqueeSection from "@/components/MarqueeSection";
+import RippleDistortion from "@/components/RippleDistortion";
 
 const Home = () => {
     return (
         <div className="relative min-h-screen bg-transparent text-white selection:bg-red-600 selection:text-white overflow-x-hidden">
+            {/* Full Home Page RippleDistortion WebGL Canvas (Original Full Color, No Grayscale) */}
+            <div className="fixed inset-0 z-0 opacity-70 pointer-events-auto">
+                <RippleDistortion 
+                    src="/bg-image.png"
+                    brushSize={180}
+                    strength={0.25}
+                    swirl={1}
+                    rings={4}
+                    spread={5}
+                    fade={3}
+                    spacing={15}
+                    dispersion={0.03}
+                    glint={0.5}
+                    tint="#ffffff"
+                    tintAmount={0}
+                    grayscale={false}
+                    highlightColor="#ffffff"
+                    trigger="hover"
+                    clickStrength={2}
+                    quality="high"
+                />
+            </div>
             <SEOKeywords />
             <TechNav />
             <main className="relative z-10 w-full">

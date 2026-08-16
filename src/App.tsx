@@ -44,7 +44,6 @@ const App = () => (
             <BrowserRouter>
                 <ErrorBoundary>
                     <SiteLayout>
-                        <CustomCursor />
                         <AnimatedRoutes />
                     </SiteLayout>
                 </ErrorBoundary>

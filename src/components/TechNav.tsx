@@ -6,10 +6,10 @@ import ScrambleText from './ScrambleText';
 const RESUME_URL = "https://drive.google.com/file/d/1NmangaAFo0eGT-KAsZi4VWOm6zI-KPk6/view?usp=sharing";
 
 const navItems = [
-    { to: '/', label: '01_Home' },
-    { to: '/achievements', label: '02_Achievements' },
-    { to: '/projects', label: '03_Projects' },
-    { to: '/contact', label: '04_Contact' },
+    { to: '/', label: 'Home' },
+    { to: '/achievements', label: 'Achievements' },
+    { to: '/projects', label: 'Projects' },
+    { to: '/contact', label: 'Contact' },
 ];
 
 const TechNav = () => {
@@ -41,16 +41,16 @@ const TechNav = () => {
                 <div className="hidden lg:flex lg:flex-1" />
 
                 {/* Center links (desktop) */}
-                <div className="hidden md:flex items-center gap-3 md:gap-6 text-[8px] md:text-[10px] font-mono uppercase tracking-[0.15em] md:tracking-[0.2em]">
+                <div className="hidden md:flex items-center gap-4 md:gap-8 text-xs md:text-sm font-heading font-black uppercase tracking-widest">
                     {navItems.map(item => (
                         <Link
                             key={item.to}
                             to={item.to}
-                            className={`relative py-1 transition-all font-bold ${isActive(item.to) ? 'text-red-500' : 'text-white/70 hover:text-red-500'}`}
+                            className={`relative py-1 transition-all font-bold ${isActive(item.to) ? 'text-red-500' : 'text-white/80 hover:text-red-500'}`}
                         >
                             <ScrambleText text={item.label} triggerOnHover />
                             {isActive(item.to) && (
-                                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-red-600 rounded-full" />
+                                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-red-600 rounded-full shadow-[0_0_8px_#FF0000]" />
                             )}
                         </Link>
                     ))}
@@ -92,7 +92,7 @@ const TechNav = () => {
                             key={item.to}
                             to={item.to}
                             onClick={() => setOpen(false)}
-                            className={`text-xs font-mono uppercase tracking-widest font-bold ${isActive(item.to) ? 'text-red-500' : 'text-white/70'}`}
+                            className={`text-sm font-heading font-black uppercase tracking-widest ${isActive(item.to) ? 'text-red-500' : 'text-white/80'}`}
                         >
                             {item.label}
                         </Link>
