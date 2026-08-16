@@ -6,11 +6,11 @@ import MysteryButterfly from '@/components/MysteryButterfly';
 
 // Lazy-load heavy background layers so first paint is HTML, not WebGL.
 const CyberBackground = lazy(() => import('@/components/CyberBackground'));
-const FrameAnimationBackground = lazy(() => import('@/components/FrameAnimationBackground'));
+const ImageBackground = lazy(() => import('@/components/ImageBackground'));
 
 /**
  * Persistent app shell. Mounted once above <Routes>, so switching pages
- * never remounts the WebGL canvas or scroll-driven video (no blink/flash).
+ * never remounts the WebGL canvas or image background.
  */
 const SiteLayout = ({ children }: { children: ReactNode }) => {
   return (
@@ -18,7 +18,7 @@ const SiteLayout = ({ children }: { children: ReactNode }) => {
       <SmoothScroll />
       <Suspense fallback={null}>
         <CyberBackground />
-        <FrameAnimationBackground />
+        <ImageBackground />
       </Suspense>
       <HUDOverlay />
       <ThemeAndEasterEgg />
