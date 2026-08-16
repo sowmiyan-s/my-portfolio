@@ -168,7 +168,7 @@ interface RippleDistortionProps {
 }
 
 const RippleDistortion: React.FC<RippleDistortionProps> = ({
-  src = '/assets/bg-image.png',
+  src = '/bg-image.png',
   brushSize = 150,
   strength = 0.2,
   swirl = 1,
