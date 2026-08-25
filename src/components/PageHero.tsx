@@ -10,14 +10,14 @@ interface PageHeroProps {
 
 const PageHero: React.FC<PageHeroProps> = ({ sectionNumber, title, subtitle }) => {
   return (
-    <section className="relative px-6 pt-32 pb-16">
+    <section className="relative px-4 sm:px-6 pt-24 sm:pt-32 pb-10 sm:pb-16">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col gap-6 border-b border-primary/30 pb-12">
-          <span className="text-xs opacity-40 font-mono italic tracking-widest block">
+        <div className="flex flex-col gap-4 sm:gap-6 border-b border-primary/30 pb-8 sm:pb-12">
+          <span className="text-[10px] sm:text-xs opacity-50 font-mono italic tracking-widest block">
             <ScrambleText text={sectionNumber} delay={0.1} />
           </span>
 
-          <h1 className="text-5xl md:text-8xl font-heading font-black text-foreground uppercase tracking-tighter">
+          <h1 className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-heading font-black text-foreground uppercase tracking-tight break-words leading-tight">
             <ScrambleText text={title} speed={0.5} delay={0.3} />
           </h1>
 

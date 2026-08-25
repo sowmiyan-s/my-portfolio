@@ -268,18 +268,18 @@ const Galaxy: React.FC<GalaxyProps> = ({
         },
         uFocal: { value: new Float32Array(focal) },
         uRotation: { value: new Float32Array(rotation) },
-        uStarSpeed: { value: starSpeed },
-        uDensity: { value: density },
+        uStarSpeed: { value: isSmallScreen ? starSpeed * 0.5 : starSpeed },
+        uDensity: { value: isSmallScreen ? Math.min(density, 0.7) : density },
         uHueShift: { value: hueShift },
         uSpeed: { value: speed },
         uMouse: {
           value: new Float32Array([smoothMousePos.current.x, smoothMousePos.current.y])
         },
-        uGlowIntensity: { value: glowIntensity },
+        uGlowIntensity: { value: isSmallScreen ? glowIntensity * 0.7 : glowIntensity },
         uSaturation: { value: saturation },
-        uMouseRepulsion: { value: mouseRepulsion },
-        uTwinkleIntensity: { value: twinkleIntensity },
-        uRotationSpeed: { value: rotationSpeed },
+        uMouseRepulsion: { value: isSmallScreen ? false : mouseRepulsion },
+        uTwinkleIntensity: { value: isSmallScreen ? 0.2 : twinkleIntensity },
+        uRotationSpeed: { value: isSmallScreen ? rotationSpeed * 0.5 : rotationSpeed },
         uRepulsionStrength: { value: repulsionStrength },
         uMouseActiveFactor: { value: 0.0 },
         uAutoCenterRepulsion: { value: autoCenterRepulsion },
@@ -294,18 +294,20 @@ const Galaxy: React.FC<GalaxyProps> = ({
       animateId = requestAnimationFrame(update);
       if (!disableAnimation) {
         program.uniforms.uTime.value = t * 0.001;
-        program.uniforms.uStarSpeed.value = (t * 0.001 * starSpeed) / 10.0;
+        program.uniforms.uStarSpeed.value = (t * 0.001 * (isSmallScreen ? starSpeed * 0.5 : starSpeed)) / 10.0;
       }
 
-      const lerpFactor = 0.05;
-      smoothMousePos.current.x += (targetMousePos.current.x - smoothMousePos.current.x) * lerpFactor;
-      smoothMousePos.current.y += (targetMousePos.current.y - smoothMousePos.current.y) * lerpFactor;
+      if (!isSmallScreen) {
+        const lerpFactor = 0.05;
+        smoothMousePos.current.x += (targetMousePos.current.x - smoothMousePos.current.x) * lerpFactor;
+        smoothMousePos.current.y += (targetMousePos.current.y - smoothMousePos.current.y) * lerpFactor;
 
-      smoothMouseActive.current += (targetMouseActive.current - smoothMouseActive.current) * lerpFactor;
+        smoothMouseActive.current += (targetMouseActive.current - smoothMouseActive.current) * lerpFactor;
 
-      program.uniforms.uMouse.value[0] = smoothMousePos.current.x;
-      program.uniforms.uMouse.value[1] = smoothMousePos.current.y;
-      program.uniforms.uMouseActiveFactor.value = smoothMouseActive.current;
+        program.uniforms.uMouse.value[0] = smoothMousePos.current.x;
+        program.uniforms.uMouse.value[1] = smoothMousePos.current.y;
+        program.uniforms.uMouseActiveFactor.value = smoothMouseActive.current;
+      }
 
       renderer.render({ scene: mesh });
     }
@@ -324,7 +326,7 @@ const Galaxy: React.FC<GalaxyProps> = ({
       targetMouseActive.current = 0.0;
     }
 
-    if (mouseInteraction) {
+    if (mouseInteraction && !isSmallScreen) {
       window.addEventListener('mousemove', handleMouseMove, { passive: true });
       ctn.addEventListener('mouseleave', handleMouseLeave);
     }

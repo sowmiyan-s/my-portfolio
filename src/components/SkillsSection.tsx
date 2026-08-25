@@ -52,32 +52,37 @@ const SkillsSection = () => {
     useRealtimeRefetch(['skills'], load);
 
 
+    const isMobile = typeof window !== 'undefined' && (
+        window.innerWidth <= 768 ||
+        (window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches)
+    );
+
     return (
-        <section className="relative py-10 md:py-12 px-4 sm:px-6 bg-transparent z-10 overflow-hidden">
-            <div className="max-w-7xl mx-auto flex flex-col gap-8">
-                <div className="flex flex-col gap-3 border-l-2 border-red-600 pl-4">
+        <section className="relative py-10 md:py-16 px-4 sm:px-6 bg-transparent z-10 overflow-hidden">
+            <div className="max-w-7xl mx-auto flex flex-col gap-6 md:gap-8">
+                <div className="flex flex-col gap-2 md:gap-3 border-l-2 border-red-600 pl-4">
                     <span className="text-[10px] font-mono uppercase tracking-[0.4em] text-red-500">02 // Capability Matrix</span>
-                    <h2 className="text-4xl md:text-6xl font-heading font-black text-white uppercase tracking-tighter">Skills</h2>
+                    <h2 className="text-3xl sm:text-4xl md:text-6xl font-heading font-black text-white uppercase tracking-tighter">Skills</h2>
                 </div>
 
                 <div className="grid gap-6">
                     <div className="grid gap-4">
-                        <p className="max-w-3xl text-sm md:text-base text-white/60 leading-relaxed">
+                        <p className="max-w-3xl text-xs md:text-base text-white/70 leading-relaxed font-mono">
                             A practical toolkit for AI product engineering, modern deployment, and visual design. These are the skills I lean on to build fast, functional and production-ready work.
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3">
                         {tech.map((name, i) => {
                             const icon = getSkillIconUrl(name);
                             return (
                                 <motion.div
                                     key={`tech-${name}-${i}`}
-                                    initial={{ opacity: 0, y: 24 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.45, delay: i * 0.03 }}
+                                    initial={isMobile ? { opacity: 1 } : { opacity: 0, y: 20 }}
+                                    whileInView={isMobile ? undefined : { opacity: 1, y: 0 }}
+                                    transition={isMobile ? undefined : { duration: 0.4, delay: i * 0.02 }}
                                     viewport={{ once: true }}
-                                    className="group flex flex-col items-center justify-center gap-1.5 md:gap-3 p-2.5 md:p-4 border border-white/10 bg-white/5 rounded-2xl md:rounded-3xl text-center shadow-[0_20px_40px_rgba(255,0,0,0.08)] transition-all duration-300 hover:-translate-y-1 hover:border-red-500 hover:shadow-[0_25px_50px_rgba(255,0,0,0.18)]"
+                                    className="group flex flex-col items-center justify-center gap-1.5 md:gap-3 p-3 md:p-4 border border-white/10 bg-neutral-950/60 rounded-xl md:rounded-2xl text-center shadow-[0_10px_30px_rgba(0,0,0,0.4)] transition-all duration-300 hover:-translate-y-1 hover:border-red-500 hover:shadow-[0_15px_30px_rgba(255,0,0,0.15)]"
                                     title={name}
                                 >
                                     {icon ? (

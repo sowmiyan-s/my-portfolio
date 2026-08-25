@@ -75,7 +75,7 @@ const ProjectSlideshow = () => {
         </h2>
       </div>
 
-      <div className="relative h-[65vh] md:h-screen min-h-[480px] bg-transparent border-y border-white/5 group">
+      <div className="relative min-h-[520px] sm:min-h-[560px] md:h-screen bg-transparent border-y border-white/5 group">
         {/* Top Progress Bar */}
         <div className="absolute top-0 left-0 w-full h-[3px] bg-white/5 z-40">
           <motion.div 
@@ -101,42 +101,42 @@ const ProjectSlideshow = () => {
               <img 
                 src={imageUrl} 
                 alt="Project Backdrop" 
-                className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:opacity-80 transition-all duration-1000 group-hover:scale-105"
+                className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:opacity-75 transition-all duration-1000 group-hover:scale-105"
               />
               
               {/* Complex Tactical Overlays */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent z-10" />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40 z-10" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/20 z-10" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-black/60 z-10" />
               <div className="absolute inset-0 opacity-10 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%)] bg-[length:100%_2px] z-20" />
             </div>
 
             {/* Content Overlay (Bottom-Pinned) */}
-            <div className="absolute inset-x-0 bottom-0 z-30 p-5 md:p-12 flex flex-col md:flex-row items-start md:items-end justify-between gap-4 md:gap-10">
-              <div className="flex flex-col gap-3 md:gap-6 max-w-2xl w-full">
+            <div className="absolute inset-x-0 bottom-0 z-30 p-4 sm:p-6 md:p-12 flex flex-col md:flex-row items-start md:items-end justify-between gap-4 md:gap-10">
+              <div className="flex flex-col gap-2.5 sm:gap-4 md:gap-6 max-w-2xl w-full">
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 bg-red-600 rounded-full shadow-[0_0_10px_#FF0000]" />
-                  <span className="text-[10px] font-mono text-red-500 font-bold uppercase tracking-[0.6em]">
+                  <span className="text-[10px] font-mono text-red-500 font-bold uppercase tracking-[0.4em] sm:tracking-[0.6em]">
                     PROJECT 0{currentIndex + 1}
                   </span>
                 </div>
                 
-                <h3 className="text-3xl md:text-7xl font-heading font-black text-white uppercase tracking-tighter leading-[0.9] break-words drop-shadow-[0_2px_15px_rgba(0,0,0,0.9)]">
+                <h3 className="text-2xl sm:text-4xl md:text-7xl font-heading font-black text-white uppercase tracking-tight leading-tight break-words drop-shadow-[0_2px_15px_rgba(0,0,0,0.9)]">
                    {current.name.replace(/-/g, ' ')}
                 </h3>
                 
-                <p className="text-white text-xs md:text-sm font-mono leading-relaxed uppercase tracking-wider line-clamp-2 max-w-xl border-l-4 border-red-600 pl-4 bg-black/80 backdrop-blur-md p-4 md:p-5 border border-white/20 shadow-xl rounded-lg">
+                <p className="text-white text-[11px] sm:text-xs md:text-sm font-mono leading-relaxed uppercase tracking-wider line-clamp-2 max-w-xl border-l-4 border-red-600 pl-3 sm:pl-4 bg-black/80 backdrop-blur-md p-3 sm:p-4 md:p-5 border border-white/20 shadow-xl rounded-lg">
                   {current.description || "No description available."}
                 </p>
 
-                <div className="flex items-center gap-6 bg-black/85 backdrop-blur-md px-4 py-2 border border-white/20 rounded-lg shadow-lg w-fit">
+                <div className="flex items-center gap-4 sm:gap-6 bg-black/85 backdrop-blur-md px-3 sm:px-4 py-2 border border-white/20 rounded-lg shadow-lg w-fit">
                   <div className="flex flex-col gap-0.5">
                     <span className="text-[8px] font-mono text-red-400 font-bold uppercase tracking-widest leading-none">Stars</span>
-                    <span className="text-sm font-heading font-black text-white leading-none">{current.stargazers_count}</span>
+                    <span className="text-xs sm:text-sm font-heading font-black text-white leading-none">{current.stargazers_count}</span>
                   </div>
-                  <div className="w-px h-6 bg-white/20" />
+                  <div className="w-px h-5 sm:h-6 bg-white/20" />
                   <div className="flex flex-col gap-0.5">
                     <span className="text-[8px] font-mono text-red-400 font-bold uppercase tracking-widest leading-none">Language</span>
-                    <span className="text-sm font-heading font-black text-white leading-none">{current.language || 'SYSTEM'}</span>
+                    <span className="text-xs sm:text-sm font-heading font-black text-white leading-none">{current.language || 'SYSTEM'}</span>
                   </div>
                 </div>
               </div>

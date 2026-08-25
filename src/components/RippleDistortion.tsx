@@ -193,9 +193,15 @@ const RippleDistortion: React.FC<RippleDistortionProps> = ({
   const configRef = useRef<any>({});
   const uniformsRef = useRef<any>(null);
 
+  const isMobile = typeof window !== 'undefined' && (
+    window.innerWidth <= 768 ||
+    (window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches)
+  );
+
   configRef.current = { brushSize, spread, fade, spacing, clickStrength, trigger, enabled };
 
   useEffect(() => {
+    if (isMobile) return;
     const mount = mountRef.current;
     if (!mount) return;
 
@@ -452,6 +458,20 @@ const RippleDistortion: React.FC<RippleDistortionProps> = ({
     u.composite.uHighlight.value = hexToRGB(highlightColor);
     u.composite.uTint.value = hexToRGB(tint);
   }, [rings, strength, swirl, dispersion, glint, tintAmount, grayscale, highlightColor, tint]);
+
+  if (isMobile) {
+    return (
+      <div className={`ripple-distortion ${className}`.trim()} style={{ ...style, overflow: 'hidden' }}>
+        <img
+          src={src}
+          alt=""
+          aria-hidden="true"
+          className="w-full h-full object-cover select-none pointer-events-none"
+          loading="eager"
+        />
+      </div>
+    );
+  }
 
   return <div ref={mountRef} className={`ripple-distortion ${className}`.trim()} style={style} />;
 };

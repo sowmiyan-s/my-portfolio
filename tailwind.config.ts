@@ -14,10 +14,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        heading: ['"Audiowide"', 'cursive'],
-        body: ['"JetBrains Mono"', 'monospace'],
+        heading: ['"Outfit"', '"Inter"', 'system-ui', 'sans-serif'],
+        body: ['"Inter"', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace'],
-        ui: ['"Chakra Petch"', 'sans-serif'],
+        ui: ['"Inter"', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",

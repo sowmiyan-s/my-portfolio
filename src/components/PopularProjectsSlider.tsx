@@ -71,27 +71,27 @@ const PopularProjectsSlider = () => {
     const current = projects[index];
 
     return (
-        <section id="popular-projects" className="relative w-full py-20 md:py-28 bg-transparent overflow-hidden">
-            {/* Galaxy Starfield Background Pattern (Transparent background) */}
-            <div className="absolute inset-0 z-0 pointer-events-none opacity-80">
+        <section id="popular-projects" className="relative w-full py-12 md:py-28 bg-transparent overflow-hidden">
+            {/* Subtle Starfield Background Pattern */}
+            <div className="absolute inset-0 z-0 pointer-events-none opacity-25">
                 <Galaxy 
                     transparent={true}
-                    mouseRepulsion={true}
-                    mouseInteraction={true}
-                    density={1.3}
-                    glowIntensity={0.6}
-                    saturation={0.9}
+                    mouseRepulsion={false}
+                    mouseInteraction={false}
+                    density={0.8}
+                    glowIntensity={0.2}
+                    saturation={0.5}
                     hueShift={350}
-                    starSpeed={0.5}
-                    twinkleIntensity={0.4}
+                    starSpeed={0.2}
+                    twinkleIntensity={0.2}
                 />
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col gap-10 relative z-10">
-                <div className="flex items-end justify-between flex-wrap gap-4 border-b border-white/10 pb-6">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col gap-8 md:gap-10 relative z-10">
+                <div className="flex items-end justify-between flex-wrap gap-4 border-b border-white/10 pb-4 md:pb-6">
                     <div className="flex flex-col gap-2">
                         <span className="text-[10px] font-mono text-red-500 uppercase tracking-[0.4em]">Featured</span>
-                        <h2 className="text-4xl md:text-6xl font-heading font-black text-white uppercase tracking-tighter">Popular Projects</h2>
+                        <h2 className="text-3xl sm:text-4xl md:text-6xl font-heading font-black text-white uppercase tracking-tighter">Popular Projects</h2>
                     </div>
                     <div className="flex gap-2">
                         {projects.map((_, i) => (
@@ -107,9 +107,9 @@ const PopularProjectsSlider = () => {
 
                 <motion.div
                     key={current.id}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                     className="relative w-full border border-white/10 bg-neutral-950 rounded-xl overflow-hidden group shadow-2xl flex flex-col"
                 >
                     {/* Full-width GitHub OpenGraph Image (Shows entire card left-to-right without clipping) */}
@@ -123,15 +123,15 @@ const PopularProjectsSlider = () => {
                                 (e.currentTarget as HTMLImageElement).style.display = 'none';
                             }}
                         />
-                        <div className="absolute top-4 left-4 bg-red-600 text-white font-mono text-[9px] px-3 py-1 uppercase tracking-widest font-bold rounded-sm shadow-md">
-                            FEATURED PROJECT {String(index + 1).padStart(2, '0')} / {String(projects.length).padStart(2, '0')}
+                        <div className="absolute top-3 left-3 md:top-4 md:left-4 bg-red-600 text-white font-mono text-[8px] md:text-[9px] px-2.5 py-1 uppercase tracking-widest font-bold rounded-sm shadow-md">
+                            FEATURED {String(index + 1).padStart(2, '0')} / {String(projects.length).padStart(2, '0')}
                         </div>
                     </div>
 
                     {/* Project Information & Controls Bar */}
-                    <div className="p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-black/80 backdrop-blur-md">
-                        <div className="flex flex-col gap-2 max-w-2xl">
-                            <h3 className="text-2xl md:text-4xl font-heading font-black text-white uppercase tracking-tight group-hover:text-red-500 transition-colors">
+                    <div className="p-4 sm:p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 md:gap-6 bg-black/80 backdrop-blur-md">
+                        <div className="flex flex-col gap-2 max-w-2xl w-full">
+                            <h3 className="text-xl sm:text-2xl md:text-4xl font-heading font-black text-white uppercase tracking-tight group-hover:text-red-500 transition-colors">
                                 {formatRepoName(current.name)}
                             </h3>
                             <p className="text-xs md:text-sm text-white/80 font-mono leading-relaxed">
@@ -149,19 +149,19 @@ const PopularProjectsSlider = () => {
                             </div>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-3 shrink-0">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full md:w-auto shrink-0">
                             <a
                                 href={current.html_url}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="flex items-center gap-2 px-5 py-3 bg-red-600 text-white hover:bg-white hover:text-black transition-all font-heading text-xs uppercase tracking-widest rounded-sm font-bold shadow-lg"
+                                className="flex items-center justify-center gap-2 px-5 py-3 bg-red-600 text-white hover:bg-white hover:text-black transition-all font-heading text-xs uppercase tracking-widest rounded-sm font-bold shadow-lg"
                             >
                                 <Github size={14} />
                                 View on GitHub
                             </a>
                             <button
                                 onClick={() => navigate(`/project/${current.name}`)}
-                                className="px-5 py-3 border border-white/20 hover:border-red-600 hover:text-red-500 transition-colors bg-white/5 font-heading text-xs uppercase tracking-widest rounded-sm"
+                                className="px-5 py-3 border border-white/20 hover:border-red-600 hover:text-red-500 transition-colors bg-white/5 font-heading text-xs uppercase tracking-widest rounded-sm text-center"
                             >
                                 Details →
                             </button>

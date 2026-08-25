@@ -86,27 +86,40 @@ const TechNav = () => {
 
             {/* Mobile dropdown */}
             {open && (
-                <div className="md:hidden absolute top-full left-3 right-3 mt-2 bg-black/95 border border-red-500/30 backdrop-blur-xl pointer-events-auto p-6 flex flex-col gap-4 rounded-2xl">
-                    {navItems.map(item => (
-                        <Link
-                            key={item.to}
-                            to={item.to}
-                            onClick={() => setOpen(false)}
-                            className={`text-sm font-heading font-black uppercase tracking-widest ${isActive(item.to) ? 'text-red-500' : 'text-white/80'}`}
-                        >
-                            {item.label}
-                        </Link>
-                    ))}
-                    <a
-                        href={RESUME_URL}
-                        target="_blank"
-                        rel="noreferrer"
+                <>
+                    <div 
+                        className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 pointer-events-auto"
                         onClick={() => setOpen(false)}
-                        className="mt-2 px-4 py-3 bg-red-600 text-white text-center text-[10px] font-heading font-black uppercase tracking-widest rounded-lg"
-                    >
-                        Download Resume
-                    </a>
-                </div>
+                    />
+                    <div className="md:hidden absolute top-full left-3 right-3 mt-2 bg-black/95 border border-red-500/30 backdrop-blur-2xl pointer-events-auto p-5 flex flex-col gap-2 rounded-2xl z-50 shadow-[0_10px_40px_rgba(0,0,0,0.8)]">
+                        {navItems.map(item => (
+                            <Link
+                                key={item.to}
+                                to={item.to}
+                                onClick={() => setOpen(false)}
+                                className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-heading font-black uppercase tracking-widest transition-colors ${
+                                    isActive(item.to) 
+                                        ? 'text-red-500 bg-red-500/10 border border-red-500/30' 
+                                        : 'text-white/80 hover:text-white hover:bg-white/5'
+                                }`}
+                            >
+                                <span>{item.label}</span>
+                                {isActive(item.to) && (
+                                    <span className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444]" />
+                                )}
+                            </Link>
+                        ))}
+                        <a
+                            href={RESUME_URL}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={() => setOpen(false)}
+                            className="mt-2 px-4 py-3.5 bg-red-600 hover:bg-red-700 text-white text-center text-xs font-heading font-black uppercase tracking-widest rounded-xl transition-colors shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+                        >
+                            Download Resume
+                        </a>
+                    </div>
+                </>
             )}
         </nav>
     );

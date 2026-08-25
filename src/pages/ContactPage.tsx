@@ -7,6 +7,7 @@ import PageHero from '@/components/PageHero';
 import ScrambleText from '@/components/ScrambleText';
 import MagicBento from '@/components/MagicBento';
 import AcidSquares from '@/components/AcidSquares';
+import SEOKeywords from '@/components/SEOKeywords';
 
 const offeringCards = [
     {
@@ -62,6 +63,7 @@ const offeringCards = [
 const ContactPage = () => {
     return (
         <div className="relative min-h-screen text-white selection:bg-red-600 overflow-x-hidden bg-[#0a0a0a]">
+            <SEOKeywords />
             {/* Fixed AcidSquares Background */}
             <div className="fixed inset-0 z-0 pointer-events-none opacity-85">
                 <AcidSquares

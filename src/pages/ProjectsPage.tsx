@@ -4,6 +4,7 @@ import Footer from '@/components/Footer';
 import ProjectsSection from '@/components/ProjectsSection';
 import ProjectPattern from '@/components/ProjectPattern';
 import ProjectSlideshow from '@/components/ProjectSlideshow';
+import SEOKeywords from '@/components/SEOKeywords';
 import { motion } from 'framer-motion';
 
 const ProjectsPage = () => {
@@ -13,6 +14,7 @@ const ProjectsPage = () => {
 
   return (
     <div className="relative min-h-screen bg-transparent text-foreground selection:bg-primary font-body overflow-x-hidden">
+      <SEOKeywords />
       <ProjectPattern>
         <TechNav />
         <main className="relative z-10 pt-24">

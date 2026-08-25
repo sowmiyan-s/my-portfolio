@@ -37,11 +37,10 @@ const MarqueeSection = () => {
     });
 
     return (
-        <section className="relative py-3 overflow-hidden bg-white border-t border-b border-slate-200/60 z-[9999]">
-
-            <div className="relative overflow-hidden">
+        <section className="relative py-2 md:py-3 overflow-hidden bg-white border-t border-b border-slate-200/60 z-10 select-none">
+            <div className="relative overflow-hidden w-full">
                 <motion.div
-                    className="flex flex-nowrap whitespace-nowrap text-3xl md:text-4xl lg:text-5xl font-black text-red-600 leading-tight"
+                    className="flex flex-nowrap whitespace-nowrap text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-red-600 leading-tight pointer-events-none"
                     style={{ transform: `translateX(${x1}%)`, fontFamily: "'Waterfall', cursive", lineHeight: 1 }}
                 >
                     <span className="mx-4">{text}</span>

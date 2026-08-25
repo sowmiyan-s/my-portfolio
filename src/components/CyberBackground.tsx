@@ -62,6 +62,15 @@ const CyberCssFallback = () => (
 );
 
 const CyberBackground = () => {
+    const isMobile = typeof window !== 'undefined' && (
+        window.innerWidth <= 768 ||
+        (window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches)
+    );
+
+    if (isMobile) {
+        return <CyberCssFallback />;
+    }
+
     return (
         <div id="canvas-container">
             <WebGLErrorBoundary fallback={<CyberCssFallback />}>

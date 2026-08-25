@@ -119,12 +119,12 @@ const BlogSection = () => {
     const durationSeconds = Math.max(activePosts.length * 6, 45);
 
     return (
-        <section id="blog" className="relative py-32 bg-transparent border-y border-white/10 z-10 overflow-hidden">
-            <div className="w-full flex flex-col gap-12">
-                <div className="px-6 flex justify-between items-end border-b border-white/20 pb-8 max-w-7xl mx-auto w-full flex-wrap gap-4">
+        <section id="blog" className="relative py-14 md:py-28 bg-transparent border-y border-white/10 z-10 overflow-hidden">
+            <div className="w-full flex flex-col gap-8 md:gap-12">
+                <div className="px-4 sm:px-6 flex justify-between items-end border-b border-white/20 pb-4 md:pb-8 max-w-7xl mx-auto w-full flex-wrap gap-4">
                     <div className="flex flex-col gap-2">
                         <span className="text-[10px] font-mono text-red-500 uppercase tracking-[0.4em]">Written Insights</span>
-                        <h2 className="text-4xl md:text-6xl font-heading font-black text-white uppercase tracking-tighter flex">
+                        <h2 className="text-3xl sm:text-4xl md:text-6xl font-heading font-black text-white uppercase tracking-tighter flex">
                             <ScrambleText text="My Articles" speed={0.5} delay={0.2} />
                         </h2>
                     </div>
@@ -136,26 +136,26 @@ const BlogSection = () => {
                         <button
                             onClick={() => handleScroll('left')}
                             aria-label="Scroll left"
-                            className="p-2.5 border border-white/10 bg-black/60 hover:border-red-500 hover:text-red-500 text-white/70 transition-colors rounded-sm"
+                            className="p-2 sm:p-2.5 border border-white/10 bg-black/60 hover:border-red-500 hover:text-red-500 text-white/70 transition-colors rounded-sm"
                         >
                             <ChevronLeft size={16} />
                         </button>
                         <button
                             onClick={() => handleScroll('right')}
                             aria-label="Scroll right"
-                            className="p-2.5 border border-white/10 bg-black/60 hover:border-red-500 hover:text-red-500 text-white/70 transition-colors rounded-sm"
+                            className="p-2 sm:p-2.5 border border-white/10 bg-black/60 hover:border-red-500 hover:text-red-500 text-white/70 transition-colors rounded-sm"
                         >
                             <ChevronRight size={16} />
                         </button>
                     </div>
                 </div>
 
-                <div className="w-full flex overflow-x-auto no-scroll relative group py-4 z-10 scroll-smooth" ref={scrollRef}>
-                    <div className="absolute left-0 top-0 bottom-0 w-12 md:w-24 bg-gradient-to-r from-black to-transparent z-20 pointer-events-none" />
-                    <div className="absolute right-0 top-0 bottom-0 w-12 md:w-24 bg-gradient-to-l from-black to-transparent z-20 pointer-events-none" />
+                <div className="w-full flex overflow-x-auto no-scroll relative group py-2 md:py-4 z-10 scroll-smooth" ref={scrollRef}>
+                    <div className="absolute left-0 top-0 bottom-0 w-8 md:w-24 bg-gradient-to-r from-black to-transparent z-20 pointer-events-none" />
+                    <div className="absolute right-0 top-0 bottom-0 w-8 md:w-24 bg-gradient-to-l from-black to-transparent z-20 pointer-events-none" />
                     
                     <div 
-                        className="animate-youtube-marquee gap-4 md:gap-8 px-4"
+                        className="animate-youtube-marquee gap-3.5 md:gap-8 px-4"
                         style={{ '--marquee-duration': `${durationSeconds}s` } as React.CSSProperties}
                     >
                         {duplicatedPosts.map((post, i) => (
@@ -164,7 +164,7 @@ const BlogSection = () => {
                                 href={post.link}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex-shrink-0 w-[280px] md:w-[400px] flex flex-col gap-4 border border-white/10 p-5 bg-black/60 hover:border-red-600 hover:bg-neutral-950 transition-all group cursor-pointer rounded-xl shadow-lg"
+                                className="flex-shrink-0 w-[80vw] max-w-[300px] sm:w-[360px] md:w-[400px] flex flex-col gap-3 md:gap-4 border border-white/10 p-4 md:p-5 bg-neutral-950/80 hover:border-red-600 hover:bg-neutral-950 transition-all group cursor-pointer rounded-xl shadow-lg"
                             >
                                 <div className="relative aspect-[16/9] w-full overflow-hidden border border-white/10 rounded-lg">
                                     <img 
@@ -173,12 +173,12 @@ const BlogSection = () => {
                                         loading="lazy"
                                         className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
                                     />
-                                    <div className="absolute top-2 left-2 text-[8px] font-mono text-white bg-red-600 px-2.5 py-1 uppercase tracking-widest rounded-sm font-bold shadow-md">
+                                    <div className="absolute top-2 left-2 text-[8px] font-mono text-white bg-red-600 px-2 py-0.5 md:px-2.5 md:py-1 uppercase tracking-widest rounded-sm font-bold shadow-md">
                                         {post.categories[0] || 'ARTICLE'}
                                     </div>
                                 </div>
-                                <div className="flex flex-col gap-2 flex-grow mt-2">
-                                    <h3 className="text-xs md:text-sm font-heading font-black uppercase leading-[1.3] group-hover:text-red-500 transition-colors line-clamp-2">
+                                <div className="flex flex-col gap-1.5 md:gap-2 flex-grow mt-1 md:mt-2">
+                                    <h3 className="text-xs sm:text-sm font-heading font-black uppercase leading-[1.3] group-hover:text-red-500 transition-colors line-clamp-2">
                                         {post.title}
                                     </h3>
                                     <p className="text-[10px] font-mono text-white/70 leading-relaxed line-clamp-2">
@@ -194,12 +194,12 @@ const BlogSection = () => {
                     </div>
                 </div>
 
-                <div className="flex justify-center pt-4 px-6">
+                <div className="flex justify-center pt-2 md:pt-4 px-4 sm:px-6">
                     <a 
                         href="https://medium.com/@sowmiyan_s_" 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="px-10 py-3.5 border border-red-600 text-xs font-mono font-bold uppercase tracking-[0.2em] bg-red-600/10 hover:bg-red-600 hover:text-white transition-all text-red-500 group flex gap-3 items-center rounded-sm shadow-lg"
+                        className="w-full sm:w-auto px-8 py-3.5 border border-red-600 text-xs font-mono font-bold uppercase tracking-[0.2em] bg-red-600/10 hover:bg-red-600 hover:text-white transition-all text-red-500 group flex justify-center gap-3 items-center rounded-sm shadow-lg text-center"
                     >
                         <span>Access Medium Profile</span>
                         <span className="group-hover:translate-x-1 transition-transform">→</span>

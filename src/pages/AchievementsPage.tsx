@@ -10,6 +10,7 @@ import LeetCodeShowcase from '@/components/LeetCodeShowcase';
 import RedCrackPattern from '@/components/RedCrackPattern';
 import MarqueeSection from '@/components/MarqueeSection';
 import ShapeGrid from '@/components/ShapeGrid';
+import SEOKeywords from '@/components/SEOKeywords';
 
 const achievements = [
   { type: 'PATENT', title: 'SMART DUSTBIN', desc: 'Integrated IoT-based waste monitoring & automated collection protocol.' },
@@ -48,6 +49,7 @@ const AchievementsPage = () => {
 
   return (
     <div className="relative min-h-screen bg-transparent text-foreground selection:bg-primary font-body overflow-x-hidden">
+      <SEOKeywords />
       {/* Full Page ShapeGrid Animated Pattern Background */}
       <div className="fixed inset-0 z-0 pointer-events-auto opacity-80">
         <ShapeGrid 
