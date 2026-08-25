@@ -96,32 +96,32 @@ const AchievementsPage = () => {
         <MarqueeSection />
 
         {/* Achievements Grid */}
-        <section className="px-6 py-16">
+        <section className="px-4 sm:px-6 py-10 sm:py-16">
           <div className="max-w-7xl mx-auto">
             <motion.div
               variants={containerVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
             >
               {achievements.map((item, i) => (
                 <motion.div
                   key={i}
                   variants={itemVariants}
                   whileHover={{ y: -6, scale: 1.01 }}
-                  className="relative p-6 md:p-8 flex flex-col justify-between gap-5 border border-white/10 bg-neutral-950/80 backdrop-blur-xl rounded-2xl group transition-all duration-300 hover:border-red-600/60 hover:shadow-[0_0_35px_rgba(239,68,68,0.2)] overflow-hidden"
+                  className="relative p-5 sm:p-8 flex flex-col justify-between gap-5 border border-white/10 bg-neutral-950/80 backdrop-blur-xl rounded-2xl group transition-all duration-300 hover:border-red-600/60 hover:shadow-[0_0_35px_rgba(239,68,68,0.2)] overflow-hidden"
                 >
                   <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-red-600/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   
-                  <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-3 sm:gap-4">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-mono font-bold text-red-500 bg-red-600/10 border border-red-500/30 px-3 py-1 uppercase tracking-widest rounded-full">
                         {item.type}
                       </span>
                     </div>
 
-                    <h3 className="text-xl font-heading font-black text-white uppercase tracking-tight group-hover:text-red-500 transition-colors leading-tight">
+                    <h3 className="text-lg sm:text-xl font-heading font-black text-white uppercase tracking-tight group-hover:text-red-500 transition-colors leading-tight">
                       {item.title}
                     </h3>
 
@@ -153,14 +153,14 @@ const AchievementsPage = () => {
         <MarqueeSection />
 
         {/* Certifications */}
-        <section className="px-6 py-16 border-t border-white/10 relative z-10">
+        <section className="px-4 sm:px-6 py-10 sm:py-16 border-t border-white/10 relative z-10">
           <div className="max-w-7xl mx-auto relative z-10">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6 mb-8 sm:mb-12">
               <motion.h2
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
-                className="text-3xl md:text-5xl font-heading font-black uppercase tracking-tighter"
+                className="text-2xl sm:text-3xl md:text-5xl font-heading font-black uppercase tracking-tight"
               >
                 Certifications
               </motion.h2>
@@ -172,7 +172,7 @@ const AchievementsPage = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search Certificates..."
-                  className="w-full bg-black/40 border border-white/10 px-4 py-2 font-mono text-xs text-white focus:outline-none focus:border-red-600 transition-colors uppercase tracking-widest rounded-sm placeholder:opacity-50"
+                  className="w-full bg-black/40 border border-white/10 px-4 py-2.5 font-mono text-xs text-white focus:outline-none focus:border-red-600 transition-colors uppercase tracking-widest rounded-sm placeholder:opacity-50"
                 />
               </div>
             </div>
@@ -184,7 +184,7 @@ const AchievementsPage = () => {
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4"
             >
               {filteredCerts.map((cert, i) => (
                 <motion.div
@@ -220,20 +220,20 @@ const AchievementsPage = () => {
         <MarqueeSection />
 
         {/* Education */}
-        <section className="px-6 py-16 border-t border-foreground/5">
+        <section className="px-4 sm:px-6 py-10 sm:py-16 border-t border-foreground/5">
           <div className="max-w-7xl mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="glass-strong p-10 flex flex-col gap-4"
+              className="glass-strong p-6 sm:p-10 flex flex-col gap-4 rounded-xl border border-white/10"
             >
               <span className="text-xs font-mono text-muted-foreground uppercase tracking-widest">Education History</span>
-              <h3 className="text-2xl font-heading font-bold uppercase">B.Tech in AI & Data Science</h3>
-              <p className="text-sm font-mono text-muted-foreground">V.S.B. College of Engineering, Coimbatore</p>
-              <div className="flex justify-between items-center mt-4 pt-4 border-t border-foreground/5">
-                <span className="text-primary font-mono text-sm font-bold">CGPA: 8.53</span>
+              <h3 className="text-xl sm:text-2xl font-heading font-bold uppercase">B.Tech in AI & Data Science</h3>
+              <p className="text-xs sm:text-sm font-mono text-muted-foreground">V.S.B. College of Engineering, Coimbatore</p>
+              <div className="flex justify-between items-center mt-4 pt-4 border-t border-foreground/5 text-xs">
+                <span className="text-primary font-mono font-bold">CGPA: 8.53</span>
                 <span className="text-[10px] text-muted-foreground font-mono">Present Status: Final Year</span>
               </div>
             </motion.div>
@@ -244,35 +244,39 @@ const AchievementsPage = () => {
       {/* Certificate Modal Lightbox */}
       {selectedCert && (
         <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-3 sm:p-6 overflow-y-auto"
           onClick={() => setSelectedCert(null)}
         >
           <div 
-            className="relative max-w-4xl w-full bg-neutral-950 border border-white/10 p-4 md:p-6 shadow-2xl flex flex-col gap-4 rounded-sm animate-in fade-in zoom-in-95 duration-200"
+            className="relative max-w-4xl w-full bg-neutral-950 border border-white/15 p-4 md:p-6 shadow-2xl flex flex-col gap-4 rounded-xl max-h-[92vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            <button 
-              className="absolute -top-10 right-0 text-white hover:text-red-500 font-mono text-xs uppercase tracking-widest flex items-center gap-2"
-              onClick={() => setSelectedCert(null)}
-            >
-              [ Close X ]
-            </button>
-            <div className="relative aspect-[4/3] w-full overflow-hidden border border-white/5 bg-black">
+            <div className="flex justify-between items-center pb-2 border-b border-white/10">
+              <span className="text-[10px] font-mono text-red-500 uppercase tracking-widest">CERTIFICATE PREVIEW</span>
+              <button 
+                className="text-white/70 hover:text-red-500 font-mono text-xs uppercase tracking-widest px-2.5 py-1 bg-white/5 border border-white/10 rounded-md"
+                onClick={() => setSelectedCert(null)}
+              >
+                Close ✕
+              </button>
+            </div>
+            
+            <div className="relative aspect-[4/3] w-full overflow-hidden border border-white/5 bg-black rounded-lg">
               <img 
                 src={selectedCert.image} 
                 alt={selectedCert.name} 
                 className="w-full h-full object-contain" 
               />
             </div>
-            <div className="flex justify-between items-center border-t border-white/5 pt-4 mt-2">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-t border-white/10 pt-3">
               <div className="flex flex-col gap-1 text-left">
-                <h3 className="font-heading font-bold text-lg uppercase tracking-tight text-white">{selectedCert.name}</h3>
-                <p className="text-xs font-mono text-muted-foreground uppercase">RECORDED CERTIFICATE</p>
+                <h3 className="font-heading font-bold text-sm sm:text-base uppercase tracking-tight text-white">{selectedCert.name}</h3>
+                <p className="text-[10px] font-mono text-muted-foreground uppercase">VERIFIED CREDENTIAL</p>
               </div>
               <a 
                 href={selectedCert.image} 
                 download 
-                className="px-4 py-2 border border-red-600 text-[10px] font-mono text-red-500 hover:bg-red-600 hover:text-white transition-all uppercase tracking-widest font-bold rounded-sm shrink-0"
+                className="w-full sm:w-auto text-center px-4 py-2 bg-red-600 text-xs font-mono text-white hover:bg-red-700 transition-all uppercase tracking-widest font-bold rounded-lg shrink-0"
               >
                 Download Record
               </a>
