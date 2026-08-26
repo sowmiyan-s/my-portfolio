@@ -8,6 +8,7 @@ import TechNav from '@/components/TechNav';
 import Footer from '@/components/Footer';
 import { ArrowLeft, Github, ExternalLink, BookOpen } from 'lucide-react';
 import SEOKeywords from '@/components/SEOKeywords';
+import SEO from '@/components/SEO';
 
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -26,6 +27,8 @@ const ProjectDetail = () => {
     window.scrollTo(0, 0);
   }, [id]);
 
+  const formattedTitle = id ? id.replace(/[-_]/g, ' ') : 'Project';
+
   if (loading) return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-3">
       <div className="w-8 h-8 rounded-full border-2 border-red-500/20 border-t-red-500 animate-spin" />
@@ -33,10 +36,14 @@ const ProjectDetail = () => {
     </div>
   );
 
-  const formattedTitle = id ? id.replace(/[-_]/g, ' ') : 'Project';
-
   return (
     <div className="relative min-h-screen bg-transparent text-white overflow-x-hidden">
+      <SEO 
+        title={`${formattedTitle} — Technical Repository & Documentation | Sowmiyan S`}
+        description={`Technical architecture, implementation details, and documentation for ${formattedTitle} open-source project by Sowmiyan S.`}
+        canonical={`https://sowmiyan-s.vercel.app/project/${id || ''}`}
+        ogType="article"
+      />
       <SEOKeywords />
       <TechNav />
 

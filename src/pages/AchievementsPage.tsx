@@ -7,6 +7,7 @@ import EbookShowcase from '@/components/EbookShowcase';
 import LeetCodeShowcase from '@/components/LeetCodeShowcase';
 import ShapeGrid from '@/components/ShapeGrid';
 import SEOKeywords from '@/components/SEOKeywords';
+import SEO from '@/components/SEO';
 import { useThemeColors } from '@/lib/useThemeColors';
 import { Search, Award, BookOpen, FileText, Cpu, CheckCircle2, Download, X, ExternalLink, GraduationCap } from 'lucide-react';
 import ScrambleText from '@/components/ScrambleText';
@@ -99,6 +100,11 @@ const AchievementsPage = () => {
 
   return (
     <div className="relative min-h-screen bg-transparent text-white font-body selection:bg-red-600 selection:text-white overflow-x-hidden">
+      <SEO 
+        title="Honors, Patents & Accredited Certifications — Sowmiyan S"
+        description="Verified intellectual property, peer-reviewed research publications (IJCRT), hackathon awards, and 40+ accredited certifications in AI, Cloud, and Software Engineering."
+        canonical="https://sowmiyan-s.vercel.app/achievements"
+      />
       <SEOKeywords />
       
       {/* Background Interactive ShapeGrid */}

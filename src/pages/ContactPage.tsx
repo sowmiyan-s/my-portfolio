@@ -8,6 +8,7 @@ import ScrambleText from '@/components/ScrambleText';
 import MagicBento from '@/components/MagicBento';
 import AcidSquares from '@/components/AcidSquares';
 import SEOKeywords from '@/components/SEOKeywords';
+import SEO from '@/components/SEO';
 import { useThemeColors } from '@/lib/useThemeColors';
 
 const offeringCards = [
@@ -66,6 +67,11 @@ const ContactPage = () => {
 
     return (
         <div className="relative min-h-screen text-white selection:bg-red-600 overflow-x-hidden bg-[#0a0a0a]">
+            <SEO 
+                title="Contact & Collaboration Inquiries — Sowmiyan S | AI Developer"
+                description="Connect with Sowmiyan S for full-time engineering roles, AI consulting, RAG architectures, and custom full-stack development."
+                canonical="https://sowmiyan-s.vercel.app/contact"
+            />
             <SEOKeywords />
             {/* Fixed AcidSquares Background */}
             <div className="fixed inset-0 z-0 pointer-events-none opacity-85">

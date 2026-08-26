@@ -9,6 +9,7 @@ import ContentCreationSection from "@/components/ContentCreationSection";
 import PopularProjectsSlider from "@/components/PopularProjectsSlider";
 import GridScan from "@/components/GridScan";
 import SEOKeywords from "@/components/SEOKeywords";
+import SEO from "@/components/SEO";
 import MarqueeSection from "@/components/MarqueeSection";
 import { useThemeColors } from "@/lib/useThemeColors";
 
@@ -17,6 +18,12 @@ const Home = () => {
 
     return (
         <div className="relative min-h-screen bg-transparent text-white selection:bg-red-600 selection:text-white overflow-x-hidden">
+            <SEO 
+                title="Sowmiyan S — AI Engineer & Full Stack Systems Developer"
+                description="Official portfolio of Sowmiyan S. Autonomous AI agents, multi-agent frameworks, production full-stack systems, research publications, and open-source software."
+                canonical="https://sowmiyan-s.vercel.app/"
+                ogType="profile"
+            />
             <SEOKeywords />
             <TechNav />
             <main className="relative z-10 w-full">

@@ -5,6 +5,7 @@ import ProjectsSection from '@/components/ProjectsSection';
 import ProjectPattern from '@/components/ProjectPattern';
 import ProjectSlideshow from '@/components/ProjectSlideshow';
 import SEOKeywords from '@/components/SEOKeywords';
+import SEO from '@/components/SEO';
 import { motion } from 'framer-motion';
 
 const ProjectsPage = () => {
@@ -14,6 +15,11 @@ const ProjectsPage = () => {
 
   return (
     <div className="relative min-h-screen bg-transparent text-foreground selection:bg-primary font-body overflow-x-hidden">
+      <SEO 
+        title="Technical Projects & Software Systems — Sowmiyan S"
+        description="Explore open-source software, autonomous AI systems, multi-agent pipelines, and web applications engineered by Sowmiyan S."
+        canonical="https://sowmiyan-s.vercel.app/projects"
+      />
       <SEOKeywords />
       <ProjectPattern>
         <TechNav />

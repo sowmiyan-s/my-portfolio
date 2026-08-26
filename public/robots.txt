@@ -1,9 +1,18 @@
-# Allow all Search Engines and AI Crawlers
+# Allow all search engines and modern AI crawlers
 User-agent: *
 Allow: /
 Disallow: /admin
 
-# AI Search Agents & Crawlers
+# Search & AI Crawlers
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
 User-agent: GPTBot
 Allow: /
 
@@ -17,15 +26,6 @@ User-agent: anthropic-ai
 Allow: /
 
 User-agent: PerplexityBot
-Allow: /
-
-User-agent: Applebot
-Allow: /
-
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
 Allow: /
 
 Sitemap: https://sowmiyan-s.vercel.app/sitemap.xml
