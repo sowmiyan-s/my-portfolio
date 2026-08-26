@@ -103,7 +103,7 @@ const AchievementsPage = () => {
       <SEO 
         title="Honors, Patents & Accredited Certifications — Sowmiyan S"
         description="Verified intellectual property, peer-reviewed research publications (IJCRT), hackathon awards, and 40+ accredited certifications in AI, Cloud, and Software Engineering."
-        canonical="https://sowmiyan-s.vercel.app/achievements"
+        canonical="https://www.sowmiyan.me/achievements"
       />
       <SEOKeywords />
       

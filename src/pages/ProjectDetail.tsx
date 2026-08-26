@@ -41,7 +41,7 @@ const ProjectDetail = () => {
       <SEO 
         title={`${formattedTitle} — Technical Repository & Documentation | Sowmiyan S`}
         description={`Technical architecture, implementation details, and documentation for ${formattedTitle} open-source project by Sowmiyan S.`}
-        canonical={`https://sowmiyan-s.vercel.app/project/${id || ''}`}
+        canonical={`https://www.sowmiyan.me/project/${id || ''}`}
         ogType="article"
       />
       <SEOKeywords />

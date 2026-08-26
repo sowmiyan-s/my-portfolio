@@ -1,12 +1,12 @@
 # Sowmiyan S - AI Engineer & Full Stack Developer Portfolio
 
-Welcome to the source code for my personal portfolio website, deployed at [https://sowmiyan-s.vercel.app/](https://sowmiyan-s.vercel.app/).
+Welcome to the source code for my personal portfolio website, deployed at [https://www.sowmiyan.me/](https://www.sowmiyan.me/).
 
 ## 👨‍💻 About Me
 I am Sowmiyan S, an **AI Engineer and Full Stack Developer** based in Namakkal, Tamil Nadu, India. I am currently pursuing my degree at VSB College of Engineering Technical Campus (VSB CETC). I specialize in building intelligent AI systems, Large Language Model (LLM) applications, and highly responsive, premium web experiences.
 
 ## 🚀 Live Demo
-**Portfolio Link:** [https://sowmiyan-s.vercel.app/](https://sowmiyan-s.vercel.app/)
+**Portfolio Link:** [https://www.sowmiyan.me/](https://www.sowmiyan.me/)
 
 ## 🛠️ Tech Stack
 This portfolio is built using modern web technologies to ensure a fast, accessible, and SEO-optimized experience:

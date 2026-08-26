@@ -70,7 +70,7 @@ const ContactPage = () => {
             <SEO 
                 title="Contact & Collaboration Inquiries — Sowmiyan S | AI Developer"
                 description="Connect with Sowmiyan S for full-time engineering roles, AI consulting, RAG architectures, and custom full-stack development."
-                canonical="https://sowmiyan-s.vercel.app/contact"
+                canonical="https://www.sowmiyan.me/contact"
             />
             <SEOKeywords />
             {/* Fixed AcidSquares Background */}

@@ -21,7 +21,7 @@ const Home = () => {
             <SEO 
                 title="Sowmiyan S — AI Engineer & Full Stack Systems Developer"
                 description="Official portfolio of Sowmiyan S. Autonomous AI agents, multi-agent frameworks, production full-stack systems, research publications, and open-source software."
-                canonical="https://sowmiyan-s.vercel.app/"
+                canonical="https://www.sowmiyan.me/"
                 ogType="profile"
             />
             <SEOKeywords />

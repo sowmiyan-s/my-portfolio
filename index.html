@@ -22,7 +22,7 @@
     <meta name="geo.position" content="11.3803;77.8927" />
     <meta name="ICBM" content="11.3803, 77.8927" />
 
-    <link rel="canonical" href="https://sowmiyan-s.vercel.app/" />
+    <link rel="canonical" href="https://www.sowmiyan.me/" />
 
     <!-- Optimized Typography (Outfit + Inter + JetBrains Mono) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -32,7 +32,7 @@
     <!-- Open Graph Social Discovery -->
     <meta property="og:type" content="profile" />
     <meta property="og:site_name" content="Sowmiyan S — Engineering Portfolio" />
-    <meta property="og:url" content="https://sowmiyan-s.vercel.app/" />
+    <meta property="og:url" content="https://www.sowmiyan.me/" />
     <meta property="og:title" content="Sowmiyan S — AI Engineer &amp; Full Stack Systems Developer" />
     <meta property="og:description" content="Official engineering portfolio of Sowmiyan S. Autonomous AI agents, multi-agent frameworks, production full-stack systems, and open-source software." />
     <meta property="og:locale" content="en_IN" />
@@ -41,6 +41,9 @@
     <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:creator" content="@sowmiyan_s" />
+    <meta name="twitter:site" content="@sowmiyan_s" />
+    <meta name="twitter:domain" content="sowmiyan.me" />
+    <meta name="twitter:url" content="https://www.sowmiyan.me/" />
     <meta name="twitter:title" content="Sowmiyan S — AI Engineer &amp; Full Stack Developer" />
     <meta name="twitter:description" content="Official engineering portfolio of Sowmiyan S. Building intelligent autonomous systems and production software." />
     <meta name="twitter:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/6d2772f8-22ff-44a6-9179-5d46e64faa2f/id-preview-49b255a6--1dd2f9b7-25de-4262-a6bb-d51d9c0fdf42.lovable.app-1774435126868.png" />
@@ -52,13 +55,14 @@
       "@graph": [
         {
           "@type": "Person",
-          "@id": "https://sowmiyan-s.vercel.app/#person",
+          "@id": "https://www.sowmiyan.me/#person",
           "name": "Sowmiyan S",
           "alternateName": ["sowmiyan-s", "Sowmiyan S AI", "Sowmiyan"],
           "jobTitle": "AI Engineer & Full Stack Developer",
           "telephone": "+919042561295",
           "email": "mailto:sowmisowmiyan58@gmail.com",
-          "url": "https://sowmiyan-s.vercel.app/",
+          "url": "https://www.sowmiyan.me/",
+          "mainEntityOfPage": "https://www.sowmiyan.me/",
           "image": "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/6d2772f8-22ff-44a6-9179-5d46e64faa2f/id-preview-49b255a6--1dd2f9b7-25de-4262-a6bb-d51d9c0fdf42.lovable.app-1774435126868.png",
           "description": "Sowmiyan S is an AI Engineer, Full-Stack Developer, and Founder of Bound By Code based in Namakkal, Tamil Nadu, India. Specializing in Multi-Agent AI systems, LLMs, React, TypeScript, Python, and scalable cloud architectures.",
           "address": {
@@ -94,17 +98,30 @@
             "https://linkedin.com/in/sowmiyan-s",
             "https://medium.com/@sowmiyan_s_",
             "https://youtube.com/@bound-by-code",
-            "https://twitter.com/sowmiyan_s"
+            "https://twitter.com/sowmiyan_s",
+            "https://leetcode.com/u/sowmiyan-s/"
           ]
         },
         {
           "@type": "WebSite",
-          "@id": "https://sowmiyan-s.vercel.app/#website",
+          "@id": "https://www.sowmiyan.me/#website",
           "name": "Sowmiyan S — Portfolio",
-          "url": "https://sowmiyan-s.vercel.app/",
+          "url": "https://www.sowmiyan.me/",
           "inLanguage": "en-IN",
           "publisher": {
-            "@id": "https://sowmiyan-s.vercel.app/#person"
+            "@id": "https://www.sowmiyan.me/#person"
+          }
+        },
+        {
+          "@type": "ProfilePage",
+          "@id": "https://www.sowmiyan.me/#profilepage",
+          "url": "https://www.sowmiyan.me/",
+          "name": "Sowmiyan S — AI Engineer & Full Stack Developer Portfolio",
+          "isPartOf": {
+            "@id": "https://www.sowmiyan.me/#website"
+          },
+          "mainEntity": {
+            "@id": "https://www.sowmiyan.me/#person"
           }
         }
       ]

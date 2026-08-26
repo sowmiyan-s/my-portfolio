@@ -18,7 +18,7 @@ const ProjectsPage = () => {
       <SEO 
         title="Technical Projects & Software Systems — Sowmiyan S"
         description="Explore open-source software, autonomous AI systems, multi-agent pipelines, and web applications engineered by Sowmiyan S."
-        canonical="https://sowmiyan-s.vercel.app/projects"
+        canonical="https://www.sowmiyan.me/projects"
       />
       <SEOKeywords />
       <ProjectPattern>

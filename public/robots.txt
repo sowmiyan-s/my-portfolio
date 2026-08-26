@@ -3,7 +3,7 @@ User-agent: *
 Allow: /
 Disallow: /admin
 
-# Search & AI Crawlers
+# Search Engine Crawlers
 User-agent: Googlebot
 Allow: /
 
@@ -13,6 +13,16 @@ Allow: /
 User-agent: Applebot
 Allow: /
 
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Yandex
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+# AI Crawlers & LLMs
 User-agent: GPTBot
 Allow: /
 
@@ -28,4 +38,14 @@ Allow: /
 User-agent: PerplexityBot
 Allow: /
 
-Sitemap: https://sowmiyan-s.vercel.app/sitemap.xml
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Cohere-ai
+Allow: /
+
+Sitemap: https://www.sowmiyan.me/sitemap.xml
+Host: https://www.sowmiyan.me
