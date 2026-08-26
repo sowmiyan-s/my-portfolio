@@ -422,6 +422,12 @@ export const GridScan: React.FC<GridScanProps> = ({
   }, [snapBackDelay, scanOnClick]);
 
   useEffect(() => {
+    if (materialRef.current && materialRef.current.uniforms && materialRef.current.uniforms.uScanColor) {
+      materialRef.current.uniforms.uScanColor.value = srgbColor(scanColor);
+    }
+  }, [scanColor]);
+
+  useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 

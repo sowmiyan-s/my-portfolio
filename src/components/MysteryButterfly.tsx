@@ -26,30 +26,7 @@ const ButterflyIcon = ({ size = 23 }: { size?: number }) => (
 
 /** Spawn sparkle particles around the caught position */
 function spawnCatchSparkles() {
-  const container = document.createElement('div');
-  container.style.cssText = 'position:fixed;inset:0;z-index:99999;pointer-events:none;overflow:hidden;';
-  document.body.appendChild(container);
-
-  const colors = ['#ef4444', '#ec4899', '#f59e0b', '#a855f7', '#3b82f6', '#10b981', '#ffffff'];
-  for (let i = 0; i < 60; i++) {
-    const p = document.createElement('div');
-    const size = Math.random() * 6 + 3;
-    const color = colors[Math.floor(Math.random() * colors.length)];
-    const x = 40 + Math.random() * 20;
-    const driftX = (Math.random() - 0.5) * 180;
-    const dur = 1.2 + Math.random() * 1.5;
-    const delay = Math.random() * 0.3;
-    p.style.cssText = `
-      position:absolute;left:${x}%;top:45%;
-      width:${size}px;height:${size}px;
-      background:${color};border-radius:${Math.random() > 0.5 ? '50%' : '0'};
-      opacity:1;
-      animation:confetti-burst ${dur}s ${delay}s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
-      --drift-x:${driftX}px;--rotation:${Math.random() * 720 - 360}deg;
-    `;
-    container.appendChild(p);
-  }
-  setTimeout(() => container.remove(), 3500);
+  // Confetti paper animation removed for clean human-centered design
 }
 
 const MysteryButterfly = () => {

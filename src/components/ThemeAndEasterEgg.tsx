@@ -64,41 +64,6 @@ const getMatchCount = (guess: string, target: string) => {
   return count;
 };
 
-// ─── Visual Effect: Confetti / Fireworks Particle Explosion ──────────────────
-function spawnConfetti(count = 150) {
-  const container = document.createElement('div');
-  container.style.cssText = 'position:fixed;inset:0;z-index:99999;pointer-events:none;overflow:hidden;';
-  document.body.appendChild(container);
-
-  const colors = ['#ef4444', '#3b82f6', '#10b981', '#a855f7', '#f59e0b', '#ec4899', '#06b6d4', '#ffffff', '#facc15', '#fb923c'];
-  for (let i = 0; i < count; i++) {
-    const particle = document.createElement('div');
-    const size = Math.random() * 8 + 4;
-    const color = colors[Math.floor(Math.random() * colors.length)];
-    const startX = 40 + Math.random() * 20; // center-ish
-    const driftX = (Math.random() - 0.5) * 200;
-    const duration = 1.5 + Math.random() * 2;
-    const delay = Math.random() * 0.4;
-    const shape = Math.random() > 0.5 ? '50%' : '0';
-
-    particle.style.cssText = `
-      position:absolute;
-      left:${startX}%;
-      top:40%;
-      width:${size}px;
-      height:${size}px;
-      background:${color};
-      border-radius:${shape};
-      opacity:1;
-      animation: confetti-burst ${duration}s ${delay}s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-      --drift-x: ${driftX}px;
-      --rotation: ${Math.random() * 720 - 360}deg;
-    `;
-    container.appendChild(particle);
-  }
-  setTimeout(() => container.remove(), 4000);
-}
-
 // ─── Visual Effect: Matrix Rain ──────────────────────────────────────────────
 function startMatrixRain(durationMs = 8000) {
   const canvas = document.createElement('canvas');
@@ -107,24 +72,25 @@ function startMatrixRain(durationMs = 8000) {
   canvas.height = window.innerHeight;
   document.body.appendChild(canvas);
 
-  const ctx = canvas.getContext('2d')!;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  
   const fontSize = 14;
-  const columns = Math.floor(canvas.width / fontSize);
+  const columns = Math.floor(canvas.width / 20);
   const drops = new Array(columns).fill(1);
-  const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEF';
+  const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノ10101010';
 
   let animId: number;
   const draw = () => {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#0f0';
+    ctx.fillStyle = '#10b981';
     ctx.font = `${fontSize}px monospace`;
 
     for (let i = 0; i < drops.length; i++) {
       const char = chars[Math.floor(Math.random() * chars.length)];
-      ctx.fillStyle = Math.random() > 0.95 ? '#fff' : `hsl(${120 + Math.random() * 20}, 100%, ${40 + Math.random() * 30}%)`;
-      ctx.fillText(char, i * fontSize, drops[i] * fontSize);
-      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+      ctx.fillText(char, i * 20, drops[i] * 20);
+      if (drops[i] * 20 > canvas.height && Math.random() > 0.975) drops[i] = 0;
       drops[i]++;
     }
     animId = requestAnimationFrame(draw);
@@ -146,6 +112,7 @@ function startRainbowMode() {
   if (rainbowInterval) return; // already running
   let hue = 0;
   document.documentElement.setAttribute('data-theme', 'rainbow');
+  window.dispatchEvent(new CustomEvent('theme-change', { detail: { themeId: 'rainbow' } }));
   rainbowInterval = setInterval(() => {
     hue = (hue + 2) % 360;
     document.documentElement.style.setProperty('--theme-color', `${hue} 100% 50%`);
@@ -244,12 +211,10 @@ const ThemeAndEasterEgg = () => {
       localStorage.setItem('sowmiyan-phantom-unlocked', 'true');
       setPhantomUnlocked(true);
 
-      // Spectacular celebration
       setTimeout(() => {
-        spawnConfetti(200);
         changeTheme('phantom');
         showAlert("PHANTOM_UNLOCKED", "SECRET 'PHANTOM' THEME ACTIVATED. YOU'VE EARNED THE RAREST REWARD.");
-      }, 600);
+      }, 300);
     } else {
       const matches = getMatchCount(code, secretCode);
       const remaining = triesLeft - 1;
@@ -276,16 +241,15 @@ const ThemeAndEasterEgg = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
 
-      // Konami Code → Fireworks + Confetti Explosion
+      // Konami Code
       if (key === KONAMI_CODE[konamiIndexRef.current]) {
         konamiIndexRef.current += 1;
         if (konamiIndexRef.current === KONAMI_CODE.length) {
-          // Epic celebration
           [400, 500, 600, 700, 800, 900, 1000, 1200].forEach((f, i) =>
             setTimeout(() => playSynthBeep(f, 0.2, "triangle"), i * 60)
           );
-          spawnConfetti(300);
-          showAlert("GOD_MODE_ACTIVATED", "KONAMI CODE ACCEPTED. REALITY ENGINE OVERRIDDEN.");
+          changeTheme('phantom');
+          showAlert("GOD_MODE_ACTIVATED", "KONAMI CODE ACCEPTED. PHANTOM THEME ACTIVATED.");
           konamiIndexRef.current = 0;
         }
       } else {
@@ -297,10 +261,16 @@ const ThemeAndEasterEgg = () => {
         setTypedKeysBuffer((prev) => {
           const next = (prev + key).slice(-20);
 
+          // ── direct color codes ──
+          if (next.endsWith("red")) { changeTheme('red'); showAlert("THEME_CHANGED", "CRIMSON RED THEME ENGAGED."); return ""; }
+          if (next.endsWith("blue")) { changeTheme('blue'); showAlert("THEME_CHANGED", "CYBER BLUE THEME ENGAGED."); return ""; }
+          if (next.endsWith("green")) { changeTheme('green'); showAlert("THEME_CHANGED", "EMERALD GREEN THEME ENGAGED."); return ""; }
+          if (next.endsWith("purple")) { changeTheme('purple'); showAlert("THEME_CHANGED", "ROYAL PURPLE THEME ENGAGED."); return ""; }
+          if (next.endsWith("yellow")) { changeTheme('yellow'); showAlert("THEME_CHANGED", "AMBER GOLD THEME ENGAGED."); return ""; }
+
           // ── rainbow: Secret cycling rainbow theme ──
           if (next.endsWith("rainbow")) {
             startRainbowMode();
-            spawnConfetti(100);
             showAlert("RAINBOW_OVERRIDE", "SECRET CHROMATIC THEME ENGAGED. CYCLING ALL SPECTRUMS.");
             return "";
           }
@@ -308,14 +278,21 @@ const ThemeAndEasterEgg = () => {
           // ── neon: Secret neon pink theme ──
           if (next.endsWith("neon")) {
             changeTheme('neon');
-            showAlert("NEON_UNLOCKED", "SECRET NEON PINK THEME ACTIVATED. NOT IN YOUR SETTINGS.");
+            showAlert("NEON_UNLOCKED", "SECRET NEON PINK THEME ACTIVATED.");
             return "";
           }
 
           // ── midnight: Secret midnight teal theme ──
           if (next.endsWith("midnight")) {
             changeTheme('midnight');
-            showAlert("MIDNIGHT_UNLOCKED", "SECRET MIDNIGHT TEAL THEME ACTIVATED. DEEP OCEAN MODE.");
+            showAlert("MIDNIGHT_UNLOCKED", "SECRET MIDNIGHT TEAL THEME ACTIVATED.");
+            return "";
+          }
+
+          // ── phantom: Secret phantom rose theme ──
+          if (next.endsWith("phantom")) {
+            changeTheme('phantom');
+            showAlert("PHANTOM_UNLOCKED", "PHANTOM THEME ACTIVATED.");
             return "";
           }
 
@@ -375,13 +352,13 @@ const ThemeAndEasterEgg = () => {
             const discoInterval = setInterval(() => {
               const themeId = discoColors[flash % discoColors.length];
               document.documentElement.setAttribute('data-theme', themeId);
+              window.dispatchEvent(new CustomEvent('theme-change', { detail: { themeId } }));
               flash++;
               if (flash > 20) {
                 clearInterval(discoInterval);
                 changeTheme('red');
               }
             }, 150);
-            spawnConfetti(80);
             showAlert("DISCO_MODE", "PARTY PROTOCOL INITIATED. CHROMATIC OVERLOAD.");
             return "";
           }
@@ -397,14 +374,20 @@ const ThemeAndEasterEgg = () => {
           if (next.endsWith("cheats")) {
             playSynthBeep(750, 0.2, "sine");
             console.table({
-              "Code": ["hack", "konami", "matrix", "rainbow", "neon", "midnight", "gravity", "glitch", "doabarrelroll", "disco", "resume", "sudo"],
+              "Code": ["hack", "konami", "matrix", "rainbow", "neon", "midnight", "phantom", "red", "blue", "green", "purple", "yellow", "gravity", "glitch", "doabarrelroll", "disco", "resume", "sudo"],
               "Effect": [
                 "Decrypt firewall game -> unlocks PHANTOM theme",
-                "Massive confetti fireworks explosion",
+                "Activate PHANTOM theme and sound sequence",
                 "Full-screen Matrix digital rain + green theme",
-                "Secret rainbow cycling theme (not in settings)",
-                "Secret neon pink theme (not in settings)",
-                "Secret midnight teal theme (not in settings)",
+                "Secret rainbow cycling theme",
+                "Secret neon pink theme",
+                "Secret midnight teal theme",
+                "Phantom rose theme",
+                "Switch to Red theme",
+                "Switch to Blue theme",
+                "Switch to Green theme",
+                "Switch to Purple theme",
+                "Switch to Yellow theme",
                 "All sections fall with gravity + bounce back",
                 "Dramatic screen signal corruption",
                 "Spin the entire page 360",

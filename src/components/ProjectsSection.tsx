@@ -539,9 +539,9 @@ const ProjectsSection = () => {
         </div>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-60 gap-12">
+          <div className="flex flex-col items-center justify-center py-40 gap-6">
             <RadarLoader />
-            <p className="font-mono text-[10px] uppercase tracking-[1em] text-red-600 animate-pulse text-center">Reconstructing Timeline Axis</p>
+            <p className="font-mono text-xs uppercase tracking-widest text-white/50 animate-pulse text-center">Loading Project Portfolio...</p>
           </div>
         ) : projects.length > 0 ? (
           <div ref={containerRef} className="relative w-full py-12">

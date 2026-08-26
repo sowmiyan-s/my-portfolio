@@ -17,6 +17,7 @@ export const THEME_COLOR_MAP: Record<string, { primary: string; secondary: strin
   neon: { primary: '#ec4899', secondary: '#f472b6', r: 236, g: 72, b: 153, r2: 244, g2: 114, b2: 182 },
   midnight: { primary: '#06b6d4', secondary: '#22d3ee', r: 6, g: 182, b: 212, r2: 34, g2: 211, b2: 238 },
   phantom: { primary: '#f43f5e', secondary: '#fb7185', r: 244, g: 63, b: 94, r2: 251, g2: 113, b2: 133 },
+  rainbow: { primary: '#ec4899', secondary: '#8b5cf6', r: 236, g: 72, b: 153, r2: 139, g2: 92, b2: 246 },
 };
 
 export function useThemeColors(): ThemeColors {
