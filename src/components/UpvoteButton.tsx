@@ -62,23 +62,38 @@ function recordVoteTime(timestamp: number) {
   } catch {}
 }
 
-/** Read the exact vote count from database (source of truth) */
-async function fetchRemoteCount(): Promise<number> {
-  // Try Edge Function first
+/** Read the exact vote count and state from database */
+async function fetchRemoteState(voterId: string): Promise<{ count: number; hasVoted?: boolean; lastVoteTime?: number }> {
+  // Try Edge Function first with voterId
   try {
-    const { data } = await supabase.functions.invoke("vote", {
+    const query = voterId ? `?voter_id=${encodeURIComponent(voterId)}` : "";
+    const { data } = await supabase.functions.invoke(`vote${query}`, {
       method: "GET" as any,
     } as any);
-    if (data && typeof data.count === "number") return data.count;
+    if (data && typeof data.count === "number") {
+      return {
+        count: data.count,
+        hasVoted: typeof data.hasVoted === "boolean" ? data.hasVoted : undefined,
+        lastVoteTime: typeof data.lastVoteTime === "number" ? data.lastVoteTime : undefined,
+      };
+    }
   } catch { /* fall through */ }
 
   // Aggregate-only fallback (no voter identifiers are exposed publicly)
   try {
     const { data, error } = await (supabase as any).rpc("get_vote_count");
-    if (!error && typeof data === "number") return data;
+    if (!error && typeof data === "number") return { count: data };
   } catch { /* fall through */ }
 
-  return -1; // signals "could not reach DB"
+  // Direct table count fallback
+  try {
+    const { count, error } = await supabase
+      .from("site_votes" as any)
+      .select("*", { count: "exact", head: true });
+    if (!error && typeof count === "number") return { count };
+  } catch { /* fall through */ }
+
+  return { count: -1 }; // signals "could not reach DB"
 }
 
 const UpvoteButton = () => {
@@ -96,25 +111,40 @@ const UpvoteButton = () => {
   const [popKey, setPopKey] = useState(0);
   const reduce = useReducedMotion();
 
-  const refresh = useCallback(async () => {
+  const checkCooldownStatus = useCallback(() => {
     const lastVoteTime = getLastVoteTime();
     const isWithin24h = lastVoteTime > 0 && (Date.now() - lastVoteTime) < COOLDOWN_24H_MS;
-
-    const remoteCount = await fetchRemoteCount();
-
-    if (remoteCount >= 0) {
-      // DB is reachable — use its count as the source of truth
-      setCount(remoteCount);
-      localStorage.setItem(LS_COUNT_KEY, remoteCount.toString());
-    }
-    // If DB unreachable (remoteCount === -1), keep showing the cached local count
-
     setVoted(isWithin24h);
     localStorage.setItem(LS_VOTE_STATE, isWithin24h ? "true" : "false");
+    return isWithin24h;
   }, []);
+
+  const refresh = useCallback(async () => {
+    const voterId = readVoterId();
+    checkCooldownStatus();
+
+    const remoteState = await fetchRemoteState(voterId);
+
+    if (remoteState.count >= 0) {
+      // DB is reachable — use its count as authoritative source of truth
+      setCount(remoteState.count);
+      localStorage.setItem(LS_COUNT_KEY, remoteState.count.toString());
+    }
+
+    if (remoteState.lastVoteTime && remoteState.lastVoteTime > 0) {
+      recordVoteTime(remoteState.lastVoteTime);
+      checkCooldownStatus();
+    } else if (remoteState.hasVoted !== undefined) {
+      setVoted(remoteState.hasVoted);
+      localStorage.setItem(LS_VOTE_STATE, remoteState.hasVoted ? "true" : "false");
+    }
+  }, [checkCooldownStatus]);
 
   useEffect(() => {
     refresh();
+
+    // Check cooldown expiration every 30 seconds
+    const interval = setInterval(checkCooldownStatus, 30000);
 
     const handleVoteChange = (e: CustomEvent) => {
       if (e.detail) {
@@ -131,10 +161,11 @@ const UpvoteButton = () => {
     window.addEventListener("site-vote-changed" as any, handleVoteChange);
     window.addEventListener("storage", refresh);
     return () => {
+      clearInterval(interval);
       window.removeEventListener("site-vote-changed" as any, handleVoteChange);
       window.removeEventListener("storage", refresh);
     };
-  }, [refresh]);
+  }, [refresh, checkCooldownStatus]);
 
   useRealtimeRefetch(["site_votes"], refresh);
 
@@ -218,31 +249,45 @@ const UpvoteButton = () => {
         body: { voter_id: voterId },
       } as any);
 
-      if (!error && data && typeof data.count === "number") {
-        // Edge Function returned the real DB count — use it
-        setCount(data.count);
-        localStorage.setItem(LS_COUNT_KEY, data.count.toString());
-        window.dispatchEvent(
-          new CustomEvent("site-vote-changed", { detail: { count: data.count, voted: true } })
-        );
+      if (data) {
+        if (data.error === "cooldown_active" || data.remainingMs) {
+          if (typeof data.lastVoteTime === "number") {
+            recordVoteTime(data.lastVoteTime);
+          }
+          if (typeof data.count === "number") {
+            setCount(data.count);
+            localStorage.setItem(LS_COUNT_KEY, data.count.toString());
+          }
+          setVoted(true);
+          return;
+        }
+
+        if (typeof data.count === "number") {
+          // Edge Function returned the real DB count — use it
+          setCount(data.count);
+          localStorage.setItem(LS_COUNT_KEY, data.count.toString());
+          window.dispatchEvent(
+            new CustomEvent("site-vote-changed", { detail: { count: data.count, voted: true } })
+          );
+        }
       } else {
         // Edge Function returned no count — re-read the aggregate count
-        const dbCount = await fetchRemoteCount();
-        if (dbCount >= 0) {
-          setCount(dbCount);
-          localStorage.setItem(LS_COUNT_KEY, dbCount.toString());
+        const remoteState = await fetchRemoteState(voterId);
+        if (remoteState.count >= 0) {
+          setCount(remoteState.count);
+          localStorage.setItem(LS_COUNT_KEY, remoteState.count.toString());
           window.dispatchEvent(
-            new CustomEvent("site-vote-changed", { detail: { count: dbCount, voted: true } })
+            new CustomEvent("site-vote-changed", { detail: { count: remoteState.count, voted: true } })
           );
         }
       }
     } catch (err) {
       console.warn("Vote write notice:", err);
       try {
-        const dbCount = await fetchRemoteCount();
-        if (dbCount >= 0) {
-          setCount(dbCount);
-          localStorage.setItem(LS_COUNT_KEY, dbCount.toString());
+        const remoteState = await fetchRemoteState(voterId);
+        if (remoteState.count >= 0) {
+          setCount(remoteState.count);
+          localStorage.setItem(LS_COUNT_KEY, remoteState.count.toString());
         }
       } catch (dbErr) {
         console.warn("Direct DB fallback:", dbErr);

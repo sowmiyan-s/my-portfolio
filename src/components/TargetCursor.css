@@ -16,7 +16,7 @@
   top: 50%;
   width: 4px;
   height: 4px;
-  background: #ef4444;
+  background: hsl(var(--theme-color, 0 100% 50%));
   border-radius: 50%;
   transform: translate(-50%, -50%);
   will-change: transform;
@@ -28,7 +28,7 @@
   top: 50%;
   width: 12px;
   height: 12px;
-  border: 2px solid #ef4444;
+  border: 2px solid hsl(var(--theme-color, 0 100% 50%));
   will-change: transform;
 }
 

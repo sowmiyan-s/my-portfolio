@@ -62,123 +62,182 @@ const ProjectSlideshow = () => {
   const nextSlide = () => setCurrentIndex((prev) => (prev + 1) % featuredProjects.length);
   const prevSlide = () => setCurrentIndex((prev) => (prev - 1 + featuredProjects.length) % featuredProjects.length);
 
+  const isMobile = typeof window !== 'undefined' && (
+    window.innerWidth <= 768 ||
+    (window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches)
+  );
+
   return (
-    <section className="relative w-full overflow-hidden bg-transparent">
-      {/* Section Header (Fixed at top of slideshow area) */}
-      <div className="relative px-5 md:px-16 pt-2 pb-2 flex flex-col gap-2 bg-transparent mt-4 mb-4">
+    <section className="relative w-full overflow-hidden bg-transparent py-4 md:py-8">
+      {/* Section Header */}
+      <div className="max-w-[95vw] mx-auto px-2 sm:px-4 mb-4 md:mb-6 flex flex-col gap-1">
         <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 bg-red-600 rounded-full" />
-          <span className="text-[10px] md:text-xs font-mono text-red-600 font-bold uppercase tracking-[0.4em] md:tracking-[0.6em]">FEATURED PROJECTS</span>
+          <span className="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse" />
+          <span className="text-[10px] md:text-xs font-mono text-red-500 font-bold uppercase tracking-[0.3em] md:tracking-[0.5em]">
+            FEATURED PROJECTS
+          </span>
         </div>
-        <h2 className="text-4xl md:text-8xl font-heading font-black text-white uppercase tracking-tighter leading-none">
+        <h2 className="text-2xl sm:text-4xl md:text-5xl font-heading font-black text-white uppercase tracking-tight leading-none">
           <ScrambleText text="Popular Projects" />
         </h2>
       </div>
 
-      <div className="relative min-h-[520px] sm:min-h-[560px] md:h-screen bg-transparent border-y border-white/5 group">
-        {/* Top Progress Bar */}
-        <div className="absolute top-0 left-0 w-full h-[3px] bg-white/5 z-40">
-          <motion.div 
-            key={currentIndex}
-            initial={{ width: 0 }}
-            animate={{ width: "100%" }}
-            transition={{ duration: 10, ease: "linear" }}
-            className="h-full bg-red-600 shadow-[0_0_15px_#FF0000]"
-          />
-        </div>
+      <div className="max-w-[95vw] mx-auto px-2 sm:px-4">
+        {/* Main Showcase Container */}
+        <div className="relative w-full border border-white/10 hover:border-white/20 bg-neutral-950/90 rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl backdrop-blur-xl transition-all duration-300">
+          
+          {/* Top Continuous Progress Bar */}
+          <div className="w-full h-[3px] bg-white/5 relative z-40">
+            <motion.div 
+              key={currentIndex}
+              initial={{ width: "0%" }}
+              animate={{ width: "100%" }}
+              transition={{ duration: 10, ease: "linear" }}
+              className="h-full bg-red-600 shadow-[0_0_15px_#FF0000]"
+            />
+          </div>
 
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={current.id}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8 }}
-            className="absolute inset-0"
-          >
-            {/* Background Visual (Full Size) */}
-            <div className="absolute inset-0 bg-[#0a0a0a]">
-              <img 
-                src={imageUrl} 
-                alt="Project Backdrop" 
-                className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:opacity-75 transition-all duration-1000 group-hover:scale-105"
-              />
-              
-              {/* Complex Tactical Overlays */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/20 z-10" />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-black/60 z-10" />
-              <div className="absolute inset-0 opacity-10 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%)] bg-[length:100%_2px] z-20" />
-            </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={current.id}
+              initial={{ opacity: 0, x: isMobile ? 0 : 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: isMobile ? 0 : -20 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className="grid grid-cols-1 lg:grid-cols-12 min-h-[380px] md:min-h-[460px] w-full"
+            >
+              {/* ─── LEFT: Full-Width Aspect Ratio Media Preview (lg:col-span-7) ─── */}
+              <div className="lg:col-span-7 relative w-full h-[240px] sm:h-[320px] md:h-[400px] lg:h-full min-h-[260px] lg:min-h-[460px] bg-[#0d1117] overflow-hidden group flex items-center justify-center border-b lg:border-b-0 lg:border-r border-white/10">
+                <img 
+                  src={imageUrl} 
+                  alt={current.name} 
+                  className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+                
+                {/* Subtle Gradient Shade for Contrast */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
 
-            {/* Content Overlay (Bottom-Pinned) */}
-            <div className="absolute inset-x-0 bottom-0 z-30 p-4 sm:p-6 md:p-12 flex flex-col md:flex-row items-start md:items-end justify-between gap-4 md:gap-10">
-              <div className="flex flex-col gap-2.5 sm:gap-4 md:gap-6 max-w-2xl w-full">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-red-600 rounded-full shadow-[0_0_10px_#FF0000]" />
-                  <span className="text-[10px] font-mono text-red-500 font-bold uppercase tracking-[0.4em] sm:tracking-[0.6em]">
-                    PROJECT 0{currentIndex + 1}
+                {/* Status Badges on Media */}
+                <div className="absolute top-3 left-3 sm:top-4 sm:left-4 flex items-center gap-2 z-10">
+                  <span className="bg-red-600 text-white font-mono text-[9px] sm:text-[11px] px-2.5 py-1 uppercase tracking-widest font-bold rounded shadow-md">
+                    PROJECT {String(currentIndex + 1).padStart(2, '0')} / {String(featuredProjects.length).padStart(2, '0')}
                   </span>
-                </div>
-                
-                <h3 className="text-2xl sm:text-4xl md:text-7xl font-heading font-black text-white uppercase tracking-tight leading-tight break-words drop-shadow-[0_2px_15px_rgba(0,0,0,0.9)]">
-                   {current.name.replace(/-/g, ' ')}
-                </h3>
-                
-                <p className="text-white text-[11px] sm:text-xs md:text-sm font-mono leading-relaxed uppercase tracking-wider line-clamp-2 max-w-xl border-l-4 border-red-600 pl-3 sm:pl-4 bg-black/80 backdrop-blur-md p-3 sm:p-4 md:p-5 border border-white/20 shadow-xl rounded-lg">
-                  {current.description || "No description available."}
-                </p>
-
-                <div className="flex items-center gap-4 sm:gap-6 bg-black/85 backdrop-blur-md px-3 sm:px-4 py-2 border border-white/20 rounded-lg shadow-lg w-fit">
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[8px] font-mono text-red-400 font-bold uppercase tracking-widest leading-none">Stars</span>
-                    <span className="text-xs sm:text-sm font-heading font-black text-white leading-none">{current.stargazers_count}</span>
-                  </div>
-                  <div className="w-px h-5 sm:h-6 bg-white/20" />
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[8px] font-mono text-red-400 font-bold uppercase tracking-widest leading-none">Language</span>
-                    <span className="text-xs sm:text-sm font-heading font-black text-white leading-none">{current.language || 'SYSTEM'}</span>
-                  </div>
+                  {current.language && (
+                    <span className="bg-black/80 backdrop-blur-md border border-white/15 text-white/90 font-mono text-[9px] sm:text-[10px] px-2.5 py-1 rounded font-bold uppercase">
+                      {current.language}
+                    </span>
+                  )}
                 </div>
               </div>
 
-              {/* Action & Nav Section */}
-              <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-start gap-4 md:gap-10 w-full md:w-auto">
-                <a 
-                  href={current.html_url} 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="flex items-center gap-2 px-5 py-3 bg-red-600 border border-red-500 hover:bg-white hover:text-black transition-all text-white font-bold text-xs font-heading uppercase tracking-[0.3em] md:tracking-[0.4em] shadow-lg rounded-lg"
-                >
-                  <Github size={14} />
-                  <span className="hidden md:inline">VIEW REPOSITORY</span>
-                  <span className="md:hidden">REPO</span>
-                </a>
+              {/* ─── RIGHT: Clear Project Intelligence & Details Panel (lg:col-span-5) ─── */}
+              <div className="lg:col-span-5 p-5 sm:p-7 md:p-8 flex flex-col justify-between gap-6 bg-gradient-to-b from-neutral-900/60 to-black/90">
+                <div className="flex flex-col gap-4">
+                  {/* Category / Star Stat */}
+                  <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-3">
+                    <span className="text-xs font-mono text-red-500 font-bold uppercase tracking-wider">
+                      OPEN SOURCE PROJECT
+                    </span>
 
-                <div className="flex items-center gap-3 md:gap-8">
-                  <div className="flex gap-1.5 md:gap-2">
-                    {featuredProjects.map((_, i) => (
+                    <div className="flex items-center gap-2">
+                      {current.stargazers_count > 0 && (
+                        <span className="text-xs font-mono text-white/90 bg-white/10 border border-white/15 px-2.5 py-1 rounded-full flex items-center gap-1 font-bold">
+                          ★ {current.stargazers_count}
+                        </span>
+                      )}
+                      {/* @ts-ignore */}
+                      {current.forks_count > 0 && (
+                        <span className="text-xs font-mono text-white/70 bg-white/5 border border-white/10 px-2.5 py-1 rounded-full flex items-center gap-1">
+                          ⑂ {current.forks_count}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Project Title */}
+                  <div className="flex flex-col gap-1.5">
+                    <h3 className="text-xl sm:text-2xl md:text-3xl font-heading font-black text-white uppercase tracking-tight leading-tight">
+                      {current.name.replace(/-/g, ' ')}
+                    </h3>
+                  </div>
+
+                  {/* Project Description */}
+                  <p className="text-xs sm:text-sm text-white/75 font-sans leading-relaxed">
+                    {current.description || "Open-source software application built for high performance and modern developer workflows."}
+                  </p>
+
+                  {/* Tech Specs Grid */}
+                  <div className="grid grid-cols-2 gap-2.5 pt-2">
+                    <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col gap-0.5">
+                      <span className="text-[10px] font-mono uppercase text-white/40 tracking-wider">Primary Language</span>
+                      <span className="text-xs sm:text-sm font-mono font-bold text-red-400 uppercase">
+                        {current.language || 'Multi-Stack'}
+                      </span>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col gap-0.5">
+                      <span className="text-[10px] font-mono uppercase text-white/40 tracking-wider">Visibility</span>
+                      <span className="text-xs sm:text-sm font-mono font-bold text-white/90">
+                        Public Repository
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer Controls & Call to Action */}
+                <div className="flex flex-col gap-3 pt-4 border-t border-white/10">
+                  <div className="flex items-center justify-between gap-3">
+                    <a 
+                      href={current.html_url} 
+                      target="_blank" 
+                      rel="noreferrer"
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 bg-red-600 hover:bg-white hover:text-black transition-all duration-200 text-white font-bold text-xs font-mono uppercase tracking-wider rounded-xl shadow-lg group/btn"
+                    >
+                      <Github size={15} />
+                      <span>View Repository</span>
+                      <ChevronRight size={14} className="transition-transform group-hover/btn:translate-x-1" />
+                    </a>
+
+                    {/* Prev / Next Slide Arrows */}
+                    <div className="flex items-center gap-1.5 shrink-0">
                       <button 
-                        key={i} 
-                        onClick={() => setCurrentIndex(i)}
-                        className={`h-1 transition-all duration-500 rounded-full ${i === currentIndex ? 'w-8 md:w-10 bg-red-600 shadow-[0_0_10px_#FF0000]' : 'w-2 bg-white/10 hover:bg-white/30'}`}
+                        onClick={prevSlide}
+                        className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 hover:border-white/30 text-white flex items-center justify-center transition-all text-base font-bold"
+                        aria-label="Previous Slide"
+                      >
+                        ‹
+                      </button>
+                      <button 
+                        onClick={nextSlide}
+                        className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 hover:border-white/30 text-white flex items-center justify-center transition-all text-base font-bold"
+                        aria-label="Next Slide"
+                      >
+                        ›
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Dot Indicators */}
+                  <div className="flex items-center justify-center gap-1.5 mt-1">
+                    {featuredProjects.map((_, idx) => (
+                      <button
+                        key={`dot-${idx}`}
+                        onClick={() => setCurrentIndex(idx)}
+                        className={`h-1.5 rounded-full transition-all duration-300 ${
+                          currentIndex === idx ? 'w-6 bg-red-500' : 'w-1.5 bg-white/20 hover:bg-white/40'
+                        }`}
+                        aria-label={`Go to slide ${idx + 1}`}
                       />
                     ))}
                   </div>
-                  
-                  <button 
-                    onClick={nextSlide}
-                    className="p-2 md:p-2.5 bg-white/5 border border-white/10 text-white/30 hover:border-red-600 hover:text-red-500 transition-all rounded-lg"
-                  >
-                    <ChevronRight size={14} />
-                  </button>
                 </div>
               </div>
-            </div>
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Global Tactical Grid Overlay */}
-        <div className="absolute inset-0 pointer-events-none opacity-[0.02] bg-tactical-grid" />
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
     </section>
   );

@@ -1,6 +1,6 @@
 /**
  * Map of skill name (lowercased) -> Simple Icons CDN slug.
- * Uses https://cdn.simpleicons.org which serves official brand SVGs.
+ * Uses https://cdn.simpleicons.org which serves official brand SVGs in vibrant brand colors.
  */
 const map: Record<string, string> = {
   // languages
@@ -12,12 +12,12 @@ const map: Record<string, string> = {
   typescript: "typescript",
   ts: "typescript",
   html: "html5",
-  "html5": "html5",
+  html5: "html5",
   css: "css3",
-  "css3": "css3",
+  css3: "css3",
   sql: "mysql",
 
-  // AI / ML
+  // AI / ML & Agents
   ai: "openai",
   llm: "openai",
   llms: "openai",
@@ -34,31 +34,38 @@ const map: Record<string, string> = {
   pytorch: "pytorch",
   claude: "anthropic",
   ollama: "ollama",
+  fastapi: "fastapi",
+  n8n: "n8n",
 
-  // web
+  // web & frontend
   react: "react",
   "react.js": "react",
   reactjs: "react",
+  "next.js": "nextdotjs",
+  nextjs: "nextdotjs",
   "node.js": "nodedotjs",
   nodejs: "nodedotjs",
   node: "nodedotjs",
   "node js": "nodedotjs",
   vite: "vite",
-  "tailwind": "tailwindcss",
+  tailwind: "tailwindcss",
   "tailwind css": "tailwindcss",
   tailwindcss: "tailwindcss",
   bootstrap: "bootstrap",
-  bootstraps: "bootstrap",
 
-  // data
+  // data & databases
   mongodb: "mongodb",
   "mongo db": "mongodb",
   mongo: "mongodb",
   mysql: "mysql",
+  postgresql: "postgresql",
+  postgres: "postgresql",
+  supabase: "supabase",
   pandas: "pandas",
   "power bi": "powerbi",
+  powerbi: "powerbi",
 
-  // cloud / infra
+  // cloud / infra & devops
   aws: "amazonwebservices",
   "amazon(aws)": "amazonwebservices",
   amazon: "amazonwebservices",
@@ -66,21 +73,55 @@ const map: Record<string, string> = {
   netlify: "netlify",
   docker: "docker",
   linux: "linux",
+  ubuntu: "ubuntu",
 
-  // tools
+  // tools & design
   vscode: "visualstudiocode",
   "vs code": "visualstudiocode",
   figma: "figma",
-  gigma: "figma",
-  canva: "canva",
   git: "git",
   github: "github",
-  n8n: "n8n",
+  postman: "postman",
 };
 
-export function getSkillIconUrl(name: string): string | null {
+export function getSkillCategory(name: string): 'ai' | 'lang' | 'frontend' | 'cloud' | 'data' {
+  const k = name.trim().toLowerCase();
+  if (/langchain|crewai|hugging|claude|ollama|n8n|ai|llm|rag|openai|fastapi|pytorch|tensorflow/i.test(k)) return 'ai';
+  if (/python|java|typescript|javascript|html|css|sql/i.test(k)) return 'lang';
+  if (/react|vite|tailwind|figma|next|bootstrap/i.test(k)) return 'frontend';
+  if (/aws|docker|linux|vercel|netlify|git|github|ubuntu/i.test(k)) return 'cloud';
+  if (/mongo|mysql|postgres|supabase|pandas|power/i.test(k)) return 'data';
+  return 'ai';
+}
+
+const BLACK_OR_DARK_ICONS = new Set([
+  "nextdotjs",
+  "vercel",
+  "github",
+  "ollama",
+  "anthropic",
+  "linux",
+  "apple",
+  "openai",
+  "shadcnui",
+  "express",
+  "flask",
+  "crewai",
+  "n8n"
+]);
+
+export function getSkillIconUrl(name: string, colored: boolean = true): string | null {
   const key = name.trim().toLowerCase();
   const slug = map[key] ?? map[key.replace(/[._-]/g, " ")];
   if (!slug) return null;
-  return `https://cdn.simpleicons.org/${slug}/ffffff`;
+  
+  // If colored is requested but the brand's official icon is black/dark, serve in white for high visibility
+  if (colored && BLACK_OR_DARK_ICONS.has(slug)) {
+    return `https://cdn.simpleicons.org/${slug}/ffffff`;
+  }
+
+  return colored 
+    ? `https://cdn.simpleicons.org/${slug}`
+    : `https://cdn.simpleicons.org/${slug}/ffffff`;
 }
+

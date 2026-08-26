@@ -156,7 +156,7 @@ const ProjectCard = ({ project, index, side, onClick }: { project: any, index: n
       {/* Inner Clipped Dark Container */}
       <div 
         style={{ clipPath: clipPathStyle }}
-        className="w-full h-full bg-[#050505]/95 p-6 md:p-8 relative overflow-hidden flex flex-col z-10"
+        className="w-full h-full bg-[#050505]/95 p-4 sm:p-6 md:p-8 relative overflow-hidden flex flex-col z-10"
       >
         {/* Connection Dot (Desktop) */}
         <div
@@ -166,54 +166,65 @@ const ProjectCard = ({ project, index, side, onClick }: { project: any, index: n
           `}
         />
 
-        {/* Red Fill Layer */}
+        {/* Subtle Ambient Accent Glow */}
         <motion.div
-          style={{ height: fillHeight }}
-          className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-red-950 via-red-800 to-red-600/90 origin-bottom z-0 pointer-events-none"
+          style={{ opacity: useTransform(smoothProgress, [0.2, 0.8], [0, 0.2]) }}
+          className="absolute inset-0 bg-gradient-to-t from-red-950/40 via-red-900/10 to-transparent pointer-events-none z-0"
         />
 
         {/* Card Content */}
         <div className="relative z-10 flex flex-col h-full text-white">
           
-          {/* Top Header Row: System Index and Status */}
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-2">
-              <Terminal size={10} className="text-red-500" />
-              <span className="text-[10px] font-mono text-red-500 font-bold uppercase tracking-wider">
-                NODE_{formattedIndex}
-              </span>
-            </div>
-            <span className="text-[9px] font-mono tracking-widest text-white/30 uppercase bg-white/5 border border-white/10 px-2 py-0.5 rounded-md group-hover:bg-red-500/20 group-hover:border-red-500/30 group-hover:text-red-200 transition-all duration-500">
+          {/* Top Header Row: Category Badge and Date */}
+          <div className="flex justify-between items-center mb-2.5 sm:mb-4">
+            <span className="text-[10px] sm:text-xs font-mono text-red-500 font-bold uppercase tracking-wider">
+              {project.tech[0] ? `${project.tech[0]} PROJECT` : 'OPEN SOURCE'}
+            </span>
+            <span className="text-[9px] sm:text-[10px] font-mono tracking-widest text-white/50 uppercase bg-white/5 border border-white/10 px-2 py-0.5 rounded group-hover:border-red-500/30 group-hover:text-white transition-all duration-300">
               {project.date}
             </span>
           </div>
 
-          {/* Project Title (Scramble on scroll/view) */}
-          <h3 className="text-2xl md:text-3xl font-heading font-black uppercase tracking-tighter mb-4 leading-none text-white group-hover:text-red-400 transition-colors duration-300">
+          {/* Project Title */}
+          <h3 className="text-lg sm:text-2xl md:text-3xl font-heading font-black uppercase tracking-tight mb-2 sm:mb-3 leading-tight text-white group-hover:text-red-400 transition-colors duration-300">
             <ScrambleText text={project.title} triggerOnView />
           </h3>
 
-          {/* Sci-Fi Monospace Typewriter Diagnostic Readouts */}
-          <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 font-mono text-[10px] text-white/80 uppercase mb-4 border-l-2 border-red-600 pl-3 bg-black/60 p-2.5 rounded-lg border border-white/10">
-            <div className="flex justify-between"><span>[STATUS]</span> <span className="text-red-500 font-bold">DEPLOYED</span></div>
-            <div className="flex justify-between"><span>[LANGUAGE]</span> <span className="text-white font-bold">{project.tech[0] || 'N/A'}</span></div>
-            <div className="flex justify-between"><span>[STARS]</span> <span className="text-yellow-400 font-bold">{project.stars.toString().padStart(3, '0')}</span></div>
-            <div className="flex justify-between"><span>[FORKS]</span> <span className="text-white font-bold">{project.forks.toString().padStart(3, '0')}</span></div>
+          {/* Clean Real Stats & Specs */}
+          <div className="flex flex-wrap items-center gap-2 mb-3 sm:mb-4">
+            {project.stars > 0 && (
+              <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-mono bg-white/5 border border-white/10 px-2.5 py-1 rounded-md text-white/90">
+                <span className="text-yellow-400">★</span>
+                <span>{project.stars} Stars</span>
+              </div>
+            )}
+            {project.forks > 0 && (
+              <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-mono bg-white/5 border border-white/10 px-2.5 py-1 rounded-md text-white/70">
+                <span className="text-white/40">⑂</span>
+                <span>{project.forks} Forks</span>
+              </div>
+            )}
+            {project.tech[0] && (
+              <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-mono bg-red-950/40 border border-red-500/30 px-2.5 py-1 rounded-md text-red-400 font-bold uppercase">
+                <span>◈</span>
+                <span>{project.tech[0]}</span>
+              </div>
+            )}
           </div>
 
           {/* Description */}
-          <p className="text-white text-xs md:text-sm leading-relaxed mb-6 font-normal group-hover:text-white transition-colors duration-300">
+          <p className="text-white/80 text-[11px] sm:text-xs md:text-sm leading-relaxed mb-3 sm:mb-6 font-normal group-hover:text-white transition-colors duration-300 line-clamp-3 sm:line-clamp-none">
             {project.description}
           </p>
 
           {/* Tech tags and social stats */}
-          <div className="mt-auto flex flex-col gap-4">
+          <div className="mt-auto flex flex-col gap-2.5 sm:gap-4">
             {/* Tech tags */}
             <div className="flex flex-wrap gap-1.5">
               {project.tech.map((t: string) => (
                 <span
                   key={t}
-                  className="text-[10px] px-2.5 py-1 bg-red-600/10 border border-red-500/30 rounded-md font-mono text-red-400 font-bold uppercase tracking-widest group-hover:bg-red-600 group-hover:text-white transition-all duration-300"
+                  className="text-[10px] px-2.5 py-1 bg-white/5 border border-white/10 rounded-md font-mono text-white/80 font-medium uppercase tracking-wider group-hover:border-red-500/30 group-hover:text-red-300 transition-all duration-300"
                 >
                   {t}
                 </span>
@@ -221,20 +232,16 @@ const ProjectCard = ({ project, index, side, onClick }: { project: any, index: n
             </div>
 
             {/* Footer link */}
-            <div className="flex items-center justify-between border-t border-white/10 pt-4 group-hover:border-red-500/30 transition-colors duration-300">
-              <span className="text-[10px] font-mono text-white/60 font-bold group-hover:text-red-400 transition-colors">
-                MAINFRAME_CONNECTED // YES
-              </span>
-
+            <div className="flex items-center justify-end border-t border-white/10 pt-3.5 group-hover:border-red-500/30 transition-colors duration-300">
               {/* Github Link */}
               <a
                 href={project.github}
                 target="_blank"
                 rel="noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="flex items-center justify-center px-3 py-1.5 rounded-lg bg-red-600 border border-red-500 text-white font-bold hover:bg-white hover:text-black transition-all shadow-lg text-[10px] tracking-wider"
+                className="flex items-center justify-center px-4 py-2 rounded-lg bg-red-600 hover:bg-white hover:text-black border border-red-500 text-white font-bold transition-all shadow-md text-xs tracking-wider"
               >
-                <Github size={13} className="mr-1.5" /> REPO
+                <Github size={13} className="mr-1.5" /> REPOSITORY
               </a>
             </div>
           </div>
@@ -549,38 +556,60 @@ const ProjectsSection = () => {
                 <path
                   d={pathD}
                   fill="none"
-                  stroke="rgba(255, 255, 255, 0.05)"
+                  stroke="rgba(255, 255, 255, 0.12)"
                   strokeWidth={2}
-                  strokeLinecap="square"
+                  strokeDasharray="5 5"
+                  strokeLinecap="round"
                 />
-                {/* Animated Scroll-drawn Active Circuit Trace */}
+
+                {/* Outer Laser Ambient Glow */}
                 <motion.path
                   d={pathD}
                   fill="none"
-                  strokeWidth={2.5}
-                  strokeLinecap="square"
+                  strokeWidth={7}
+                  strokeLinecap="round"
                   style={{ pathLength: springPathLength }}
-                  className="stroke-red-500 drop-shadow-[0_0_6px_rgba(239,68,68,0.7)]"
+                  className="stroke-red-600/40 filter blur-[3px]"
+                />
+
+                {/* Main High-Visibility Laser Circuit Trace */}
+                <motion.path
+                  d={pathD}
+                  fill="none"
+                  strokeWidth={3.5}
+                  strokeLinecap="round"
+                  style={{ pathLength: springPathLength }}
+                  className="stroke-red-500 filter drop-shadow-[0_0_8px_rgba(239,68,68,1)] drop-shadow-[0_0_16px_rgba(239,68,68,0.6)]"
+                />
+
+                {/* Inner Bright Laser Core */}
+                <motion.path
+                  d={pathD}
+                  fill="none"
+                  strokeWidth={1.2}
+                  strokeLinecap="round"
+                  style={{ pathLength: springPathLength }}
+                  className="stroke-white/90"
                 />
 
                 {/* Circuit Copper Pads (stepped bends) */}
                 {pads.map((pad, idx) => (
                   <g key={`pad-${idx}`}>
                     <rect
-                      x={pad.x - 3.5}
-                      y={pad.y - 3.5}
-                      width={7}
-                      height={7}
+                      x={pad.x - 4}
+                      y={pad.y - 4}
+                      width={8}
+                      height={8}
                       fill="none"
-                      strokeWidth={1}
-                      className="stroke-red-500 opacity-40"
+                      strokeWidth={1.2}
+                      className="stroke-red-500 opacity-75 drop-shadow-[0_0_4px_#ef4444]"
                     />
                     <rect
-                      x={pad.x - 1}
-                      y={pad.y - 1}
-                      width={2}
-                      height={2}
-                      className="fill-red-500 opacity-70 animate-pulse"
+                      x={pad.x - 1.5}
+                      y={pad.y - 1.5}
+                      width={3}
+                      height={3}
+                      className="fill-white opacity-90 animate-pulse"
                     />
                   </g>
                 ))}

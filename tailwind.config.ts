@@ -18,6 +18,11 @@ export default {
         body: ['"Inter"', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace'],
         ui: ['"Inter"', 'system-ui', 'sans-serif'],
+        audiowide: ['"Audiowide"', 'cursive', 'sans-serif'],
+        monsieur: ['"Monsieur La Doulaise"', 'cursive'],
+        ruthie: ['"Ruthie"', 'cursive'],
+        sacramento: ['"Sacramento"', 'cursive'],
+        waterfall: ['"Waterfall"', 'cursive'],
       },
       colors: {
         border: "hsl(var(--border))",

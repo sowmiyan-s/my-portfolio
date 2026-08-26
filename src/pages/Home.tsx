@@ -7,11 +7,14 @@ import SkillsSection from "@/components/SkillsSection";
 import HireMeSection from "@/components/HireMeSection";
 import ContentCreationSection from "@/components/ContentCreationSection";
 import PopularProjectsSlider from "@/components/PopularProjectsSlider";
-import Pattern from "@/components/Pattern";
+import GridScan from "@/components/GridScan";
 import SEOKeywords from "@/components/SEOKeywords";
 import MarqueeSection from "@/components/MarqueeSection";
+import { useThemeColors } from "@/lib/useThemeColors";
 
 const Home = () => {
+    const { primary } = useThemeColors();
+
     return (
         <div className="relative min-h-screen bg-transparent text-white selection:bg-red-600 selection:text-white overflow-x-hidden">
             <SEOKeywords />
@@ -41,11 +44,26 @@ const Home = () => {
 
                 <MarqueeSection />
 
-                <Pattern>
-                    <div className="relative bg-transparent flex items-center justify-center w-full z-50 py-10 md:py-16">
+                {/* Bound By Code Section with React Bits GridScan Background */}
+                <div className="relative w-full overflow-hidden bg-[#0a0a0a]/80 z-50 py-10 md:py-16">
+                    <div className="absolute inset-0 z-0 pointer-events-none opacity-70">
+                        <GridScan
+                            sensitivity={0.55}
+                            lineThickness={1}
+                            linesColor="#2F293A"
+                            gridScale={0.1}
+                            scanColor={primary || "#FF0000"}
+                            scanOpacity={0.5}
+                            enablePost
+                            bloomIntensity={0.6}
+                            chromaticAberration={0.002}
+                            noiseIntensity={0.01}
+                        />
+                    </div>
+                    <div className="relative z-10 flex items-center justify-center w-full">
                         <ContentCreationSection />
                     </div>
-                </Pattern>
+                </div>
 
                 <MarqueeSection />
 

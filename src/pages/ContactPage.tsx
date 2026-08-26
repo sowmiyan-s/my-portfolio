@@ -8,6 +8,7 @@ import ScrambleText from '@/components/ScrambleText';
 import MagicBento from '@/components/MagicBento';
 import AcidSquares from '@/components/AcidSquares';
 import SEOKeywords from '@/components/SEOKeywords';
+import { useThemeColors } from '@/lib/useThemeColors';
 
 const offeringCards = [
     {
@@ -61,14 +62,17 @@ const offeringCards = [
 ];
 
 const ContactPage = () => {
+    const { primary, secondary } = useThemeColors();
+
     return (
         <div className="relative min-h-screen text-white selection:bg-red-600 overflow-x-hidden bg-[#0a0a0a]">
             <SEOKeywords />
             {/* Fixed AcidSquares Background */}
             <div className="fixed inset-0 z-0 pointer-events-none opacity-85">
                 <AcidSquares
-                    color1="#ef4444"
-                    color2="#f87171"
+                    key={primary}
+                    color1={primary}
+                    color2={secondary}
                     color3="#ffffff"
                     detail="medium"
                     speed={0.5}

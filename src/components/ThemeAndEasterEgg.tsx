@@ -218,6 +218,7 @@ const ThemeAndEasterEgg = () => {
     setActiveTheme(themeId);
     localStorage.setItem('sowmiyan-portfolio-theme', themeId);
     document.documentElement.setAttribute('data-theme', themeId);
+    window.dispatchEvent(new CustomEvent('theme-change', { detail: { themeId } }));
     const freqs: Record<string, number> = { red: 500, blue: 600, green: 700, purple: 800, yellow: 900, neon: 1000, midnight: 550, phantom: 666 };
     playSynthBeep(freqs[themeId] || 600, 0.08, "triangle");
   }, []);
@@ -465,8 +466,8 @@ const ThemeAndEasterEgg = () => {
 
   return (
     <>
-      {/* ── Settings Trigger ── */}
-      <div className="fixed bottom-4 left-4 z-40 flex items-center gap-2">
+      {/* ── Settings Trigger (Hidden on Mobile) ── */}
+      <div className="hidden md:flex fixed bottom-4 left-4 z-40 items-center gap-2">
         <button
           onClick={() => { setPanelOpen(!panelOpen); playSynthBeep(650, 0.05, "sine"); }}
           className="w-10 h-10 rounded-full bg-black border border-red-500/30 flex items-center justify-center text-red-500 hover:border-red-500 hover:bg-red-950/20 transition-all shadow-[0_0_12px_rgba(239,68,68,0.2)] focus:outline-none"
@@ -496,7 +497,10 @@ const ThemeAndEasterEgg = () => {
                 {allPanelThemes.map((theme) => (
                   <button
                     key={theme.id}
-                    onClick={() => changeTheme(theme.id)}
+                    onClick={() => {
+                      changeTheme(theme.id);
+                      setPanelOpen(false);
+                    }}
                     className={`flex items-center justify-between px-3 py-1.5 border rounded-md font-mono text-[9px] uppercase tracking-wider transition-all duration-300
                       ${activeTheme === theme.id
                         ? 'border-red-500 bg-red-600/10 text-white font-bold'

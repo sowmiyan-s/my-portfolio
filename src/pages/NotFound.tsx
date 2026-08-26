@@ -51,9 +51,9 @@ const NotFound = () => {
           >
             <Link
               to="/"
-              className="inline-block px-12 py-5 bg-primary text-primary-foreground text-xs font-heading font-black uppercase tracking-[0.3em] hover:bg-foreground hover:text-background transition-all shadow-[0_0_30px_hsl(var(--primary)/0.3)] transform hover:-translate-y-1"
+              className="inline-block px-10 py-4 bg-primary text-primary-foreground text-xs font-mono font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-all shadow-[0_0_30px_hsl(var(--primary)/0.3)] rounded-full"
             >
-              Return to Origin
+              Back to Home
             </Link>
           </motion.div>
 

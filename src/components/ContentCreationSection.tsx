@@ -169,7 +169,7 @@ const ContentCreationSection = () => {
                     </div>
                 )}
 
-                <div className="w-full px-4 sm:px-6 grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 relative z-10 max-w-5xl mx-auto">
+                <div className="w-full px-3 sm:px-6 grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 relative z-10 max-w-5xl mx-auto">
                     {links.map((link, i) => {
                         const Icon = socialIcons[link.name] || ExternalLink;
                         return (
@@ -182,28 +182,28 @@ const ContentCreationSection = () => {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 transition={{ delay: i * 0.08, duration: 0.4 }}
                                 viewport={{ once: true }}
-                                className="group relative p-5 md:p-8 border border-white/10 bg-neutral-950/60 backdrop-blur-md rounded-2xl overflow-hidden hover:border-red-500 transition-all duration-300 flex flex-col items-center text-center gap-3 md:gap-4 hover:shadow-[0_0_30px_rgba(239,68,68,0.1)] group/btn"
+                                className="group relative p-3 sm:p-5 md:p-8 border border-white/10 bg-neutral-950/60 backdrop-blur-md rounded-xl sm:rounded-2xl overflow-hidden hover:border-red-500 transition-all duration-300 flex flex-col items-center text-center gap-2 sm:gap-3 md:gap-4 hover:shadow-[0_0_30px_rgba(239,68,68,0.1)] group/btn"
                             >
                                 {/* Futuristic corner decorations */}
-                                <span className="absolute top-2 left-2 w-1.5 h-1.5 border-t border-l border-white/30 group-hover:border-red-500 transition-colors" />
-                                <span className="absolute top-2 right-2 w-1.5 h-1.5 border-t border-r border-white/30 group-hover:border-red-500 transition-colors" />
-                                <span className="absolute bottom-2 left-2 w-1.5 h-1.5 border-b border-l border-white/30 group-hover:border-red-500 transition-colors" />
-                                <span className="absolute bottom-2 right-2 w-1.5 h-1.5 border-b border-r border-white/30 group-hover:border-red-500 transition-colors" />
+                                <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 w-1 h-1 sm:w-1.5 sm:h-1.5 border-t border-l border-white/30 group-hover:border-red-500 transition-colors" />
+                                <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-1 h-1 sm:w-1.5 sm:h-1.5 border-t border-r border-white/30 group-hover:border-red-500 transition-colors" />
+                                <span className="absolute bottom-1.5 left-1.5 sm:bottom-2 sm:left-2 w-1 h-1 sm:w-1.5 sm:h-1.5 border-b border-l border-white/30 group-hover:border-red-500 transition-colors" />
+                                <span className="absolute bottom-1.5 right-1.5 sm:bottom-2 sm:right-2 w-1 h-1 sm:w-1.5 sm:h-1.5 border-b border-r border-white/30 group-hover:border-red-500 transition-colors" />
                                 
                                 {/* Background scanline effect */}
                                 <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_4px,3px_100%] opacity-0 group-hover:opacity-40 transition-opacity pointer-events-none" />
 
                                 {/* Social Icon with animated ring */}
-                                <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-white/70 group-hover:text-red-500 group-hover:border-red-500/50 group-hover:scale-110 transition-all duration-300">
-                                    <Icon size={18} />
+                                <div className="relative w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-white/70 group-hover:text-red-500 group-hover:border-red-500/50 group-hover:scale-110 transition-all duration-300">
+                                    <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
                                     <div className="absolute inset-0 rounded-full border border-transparent group-hover:border-red-500/20 group-hover:animate-ping opacity-60" />
                                 </div>
 
-                                <div className="flex flex-col gap-1 z-10">
-                                    <h3 className="font-heading uppercase tracking-[0.2em] text-base md:text-lg font-black text-white group-hover:text-red-500 transition-colors">
+                                <div className="flex flex-col gap-0.5 sm:gap-1 z-10">
+                                    <h3 className="font-heading uppercase tracking-wide sm:tracking-[0.2em] text-[11px] sm:text-base md:text-lg font-black text-white group-hover:text-red-500 transition-colors">
                                         {link.name}
                                     </h3>
-                                    <p className="font-mono text-[9px] opacity-50 uppercase tracking-widest text-white/70 group-hover:opacity-80 transition-opacity">
+                                    <p className="font-mono text-[8px] sm:text-[9px] opacity-50 uppercase tracking-widest text-white/70 group-hover:opacity-80 transition-opacity truncate max-w-full">
                                         {link.desc}
                                     </p>
                                 </div>

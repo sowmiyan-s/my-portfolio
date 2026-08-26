@@ -4,7 +4,7 @@ const Pattern = ({ children }: { children?: React.ReactNode }) => {
   return (
     <div className="relative w-full overflow-hidden bg-transparent">
       {/* Stars Background Container */}
-      <div className="absolute inset-0 w-full h-full z-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at bottom, #321b35 0%, #090a0f 100%)' }}>
+      <div className="absolute inset-0 w-full h-full z-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at bottom, hsla(var(--theme-color, 0 100% 50%), 0.18) 0%, #090a0f 100%)' }}>
         <div id="stars" />
         <div id="stars2" />
         <div id="stars3" />

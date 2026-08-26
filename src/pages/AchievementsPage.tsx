@@ -11,6 +11,7 @@ import RedCrackPattern from '@/components/RedCrackPattern';
 import MarqueeSection from '@/components/MarqueeSection';
 import ShapeGrid from '@/components/ShapeGrid';
 import SEOKeywords from '@/components/SEOKeywords';
+import { useThemeColors } from '@/lib/useThemeColors';
 
 const achievements = [
   { type: 'PATENT', title: 'SMART DUSTBIN', desc: 'Integrated IoT-based waste monitoring & automated collection protocol.' },
@@ -42,6 +43,7 @@ const itemVariants = {
 const AchievementsPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCert, setSelectedCert] = useState<Certificate | null>(null);
+  const { rgbaPrimary } = useThemeColors();
 
   const filteredCerts = certificatesList.filter(cert => {
     return cert.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -56,8 +58,8 @@ const AchievementsPage = () => {
           speed={0.5} 
           squareSize={40}
           direction='diagonal'
-          borderColor='rgba(239, 68, 68, 0.55)'
-          hoverFillColor='rgba(239, 68, 68, 0.95)'
+          borderColor={rgbaPrimary(0.55)}
+          hoverFillColor={rgbaPrimary(0.95)}
           shape='square'
           hoverTrailAmount={6}
         />
@@ -66,9 +68,9 @@ const AchievementsPage = () => {
       <TechNav />
       <main className="relative z-10">
         <PageHero
-          sectionNumber="SERVICE RECORDS"
-          title="ACCOLADES & RECORDS"
-          subtitle="Patents, awards, publications, and certifications earned along the way."
+          sectionNumber="CREDENTIALS & HONORS"
+          title="HONORS & ACHIEVEMENTS"
+          subtitle="Patents, hackathon awards, publications, and verified industry certifications."
         />
 
         {/* Animated Counters */}
@@ -131,7 +133,7 @@ const AchievementsPage = () => {
                   </div>
 
                   <div className="pt-4 border-t border-white/10 flex items-center justify-between text-[10px] font-mono text-white/40 uppercase tracking-widest group-hover:text-red-500/80 transition-colors">
-                    <span>RECORD // VERIFIED</span>
+                    <span>VERIFIED CREDENTIAL</span>
                     <span className="group-hover:translate-x-1 transition-transform">→</span>
                   </div>
                 </motion.div>

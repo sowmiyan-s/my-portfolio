@@ -3,9 +3,21 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import WebGLErrorBoundary from './WebGLErrorBoundary';
 
+const themeHexMap: Record<string, string> = {
+    red: '#ef4444',
+    blue: '#3b82f6',
+    green: '#10b981',
+    purple: '#a855f7',
+    yellow: '#f59e0b',
+    neon: '#ec4899',
+    midnight: '#06b6d4',
+    phantom: '#f43f5e',
+};
+
 const ParticleField = () => {
     const count = 1000;
     const meshRef = useRef<THREE.Points>(null);
+    const materialRef = useRef<THREE.PointsMaterial>(null);
 
     const particles = useMemo(() => {
         const positions = new Float32Array(count * 3);
@@ -19,7 +31,7 @@ const ParticleField = () => {
         return { positions, velocities };
     }, []);
 
-    useFrame((state) => {
+    useFrame(() => {
         if (!meshRef.current) return;
         const positionAttr = meshRef.current.geometry.attributes.position;
         if (!positionAttr) return;
@@ -31,6 +43,12 @@ const ParticleField = () => {
             }
         }
         positionAttr.needsUpdate = true;
+
+        if (materialRef.current && typeof document !== 'undefined') {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'red';
+            const hex = themeHexMap[currentTheme] || '#ef4444';
+            materialRef.current.color.set(hex);
+        }
     });
 
     return (
@@ -44,8 +62,9 @@ const ParticleField = () => {
                 />
             </bufferGeometry>
             <pointsMaterial
+                ref={materialRef}
                 size={0.05}
-                color="#FF0000"
+                color="#ef4444"
                 transparent
                 opacity={0.5}
                 sizeAttenuation
@@ -56,7 +75,7 @@ const ParticleField = () => {
 
 const CyberCssFallback = () => (
     <div className="fixed inset-0 bg-black pointer-events-none z-0 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(239,68,68,0.12)_0%,transparent_75%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,hsla(var(--theme-color),0.12)_0%,transparent_75%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_4px]" />
     </div>
 );
