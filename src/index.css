@@ -48,10 +48,16 @@
     -webkit-text-size-adjust: 100%;
   }
 
-  /* Custom cursor only on precise pointer (desktop). Mobile keeps native. */
-  @media (hover: hover) and (pointer: fine) {
+  /* Custom cursor only on precise pointer (desktop > 1024px). Mobile/touch keeps native cursor. */
+  @media (hover: hover) and (pointer: fine) and (min-width: 1025px) {
     * {
       cursor: none !important;
+    }
+  }
+
+  @media (hover: none), (pointer: coarse), (max-width: 1024px) {
+    *, *::before, *::after, html, body {
+      cursor: auto !important;
     }
   }
 

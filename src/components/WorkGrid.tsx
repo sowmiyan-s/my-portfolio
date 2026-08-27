@@ -33,7 +33,7 @@ const WorkGrid = () => {
     if (loading) return (
         <div className="py-40 flex flex-col items-center justify-center gap-12 border-y border-white/5 bg-black/20">
             <RadarLoader />
-            <p className="font-mono text-[10px] uppercase tracking-[1em] text-red-600 animate-pulse text-center">Synchronizing_Project_Nodes</p>
+            <p className="font-mono text-xs uppercase tracking-[0.3em] text-red-500 animate-pulse text-center">Loading Projects...</p>
         </div>
     );
 
@@ -41,9 +41,9 @@ const WorkGrid = () => {
         <section id="projects" className="relative py-24 px-6 dot-bg border-t border-white/10 z-10">
             <div className="max-w-7xl mx-auto flex flex-col gap-12">
                 <div className="flex justify-between items-end border-b border-white/20 pb-4">
-                    <div className="flex flex-col">
-                        <span className="text-xs opacity-40 font-mono italic">03 / PROJECT_GATEWAY</span>
-                        <h2 className="text-4xl md:text-5xl font-heading font-bold text-white uppercase tracking-tighter">DATASET_COLLECTION</h2>
+                    <div className="flex flex-col gap-1">
+                        <span className="text-xs opacity-50 font-mono">03 / Portfolio</span>
+                        <h2 className="text-3xl md:text-5xl font-heading font-bold text-white uppercase tracking-tight">Featured Projects</h2>
                     </div>
                 </div>
 

@@ -182,7 +182,7 @@ const SkillsSection = () => {
                 <div className="flex overflow-hidden w-full">
                     <div 
                         className="animate-marquee-right flex items-center gap-2.5 sm:gap-4"
-                        style={{ '--marquee-speed': '42s' } as React.CSSProperties}
+                        style={{ '--marquee-speed': '80s' } as React.CSSProperties}
                     >
                         {row1.map((name, i) => (
                             <SkillCard key={`r1-${name}-${i}`} name={name} />
@@ -194,7 +194,7 @@ const SkillsSection = () => {
                 <div className="flex overflow-hidden w-full">
                     <div 
                         className="animate-marquee-left flex items-center gap-2.5 sm:gap-4"
-                        style={{ '--marquee-speed': '38s' } as React.CSSProperties}
+                        style={{ '--marquee-speed': '75s' } as React.CSSProperties}
                     >
                         {row2.map((name, i) => (
                             <SkillCard key={`r2-${name}-${i}`} name={name} />
@@ -206,7 +206,7 @@ const SkillsSection = () => {
                 <div className="flex overflow-hidden w-full">
                     <div 
                         className="animate-marquee-right flex items-center gap-2.5 sm:gap-4"
-                        style={{ '--marquee-speed': '45s' } as React.CSSProperties}
+                        style={{ '--marquee-speed': '85s' } as React.CSSProperties}
                     >
                         {row3.map((name, i) => (
                             <SkillCard key={`r3-${name}-${i}`} name={name} />

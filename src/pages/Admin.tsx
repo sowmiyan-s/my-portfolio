@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { fetchRepos, GitHubRepo } from '@/lib/github';
+import { fetchRepos, clearRepoCache, GitHubRepo } from '@/lib/github';
 import { fetchChannelVideos, YouTubeVideo } from '@/lib/youtube';
 import { supabase } from '@/integrations/supabase/client';
 import { formatRepoName } from '@/lib/formatRepo';
@@ -40,6 +40,7 @@ const Admin = () => {
     const [homeFeatured, setHomeFeatured] = useState<FeaturedProject[]>([]);
     const [pageFeatured, setPageFeatured] = useState<FeaturedProject[]>([]);
     const [loading, setLoading] = useState(true);
+    const [syncingRepos, setSyncingRepos] = useState(false);
     const [techSkills, setTechSkills] = useState<{ id: string; name: string }[]>([]);
     const [nonTechSkills, setNonTechSkills] = useState<{ id: string; name: string }[]>([]);
     const [newTechSkill, setNewTechSkill] = useState('');
@@ -62,10 +63,10 @@ const Admin = () => {
     const homeFeaturedIds = homeFeatured.map(f => f.id);
     const pageFeaturedIds = pageFeatured.map(f => f.id);
 
-    const loadData = async () => {
+    const loadData = async (forceRefresh = false) => {
         setLoading(true);
         const [repoData, hiddenList, homeList, pageList, skillRes, settingsRes] = await Promise.all([
-            fetchRepos(),
+            fetchRepos(forceRefresh),
             fetchHiddenProjectIds(),
             fetchHomeFeaturedProjects(),
             fetchPageFeaturedProjects(),
@@ -83,6 +84,26 @@ const Admin = () => {
             if (row.key === 'show_global_ticker') setShowGlobalTicker(!!row.value);
         }
         setLoading(false);
+    };
+
+    const syncRepos = async () => {
+        setSyncingRepos(true);
+        try {
+            clearRepoCache();
+            const repoData = await fetchRepos(true);
+            setRepos(repoData);
+            toast({
+                title: 'GitHub Repos Synced',
+                description: `Successfully loaded ${repoData.length} repositories.`
+            });
+        } catch (err) {
+            toast({
+                title: 'Sync Notice',
+                description: 'Loaded repositories from cache and fallback dataset.'
+            });
+        } finally {
+            setSyncingRepos(false);
+        }
     };
 
     const loadVideos = async () => {
@@ -252,7 +273,7 @@ const Admin = () => {
             setAuthed(true);
             setError("");
         } else {
-            setError("ACCESS DENIED // INVALID KEY");
+            setError("Invalid Security Key");
             setPassword("");
         }
     };
@@ -344,7 +365,7 @@ const Admin = () => {
                         <div className="flex items-center gap-3">
                             <Lock size={20} className="text-red-500" />
                             <div className="flex flex-col">
-                                <span className="text-[10px] font-mono text-red-500 tracking-[0.4em] uppercase">SYS // ROOT ACCESS</span>
+                                <span className="text-xs font-mono text-red-500 tracking-widest uppercase">Admin Panel</span>
                                 <h1 className="text-2xl font-heading font-black uppercase tracking-tight">Authentication</h1>
                             </div>
                         </div>
@@ -386,7 +407,7 @@ const Admin = () => {
 
     if (loading) return (
         <div className="min-h-screen bg-black flex items-center justify-center font-mono text-red-500 uppercase tracking-widest animate-pulse">
-            [ LOADING_SYSTEM_DATA... ]
+            Loading Admin Data...
         </div>
     );
 
@@ -395,7 +416,7 @@ const Admin = () => {
             <CyberBackground />
             <TechNav />
             <main className="relative z-10">
-                <PageHero sectionNumber="SYS // ROOT ACCESS" title="ADMIN PANEL" subtitle="System configuration and project visibility matrix." />
+                <PageHero sectionNumber="06 / Admin" title="ADMIN PANEL" subtitle="System configuration and project visibility settings." />
 
                 <div className="px-4 sm:px-6 pb-24">
                     <div className="max-w-7xl mx-auto flex flex-col gap-8">
@@ -453,10 +474,24 @@ const Admin = () => {
                         >
                             <div className="flex flex-wrap items-center justify-between gap-4">
                                 <div>
-                                    <h2 className="text-xl md:text-2xl font-heading font-black uppercase text-red-500">GitHub Manager</h2>
-                                    <p className="text-[10px] font-mono opacity-60 uppercase tracking-widest">Control repository visibility across the site.</p>
+                                    <div className="flex items-center gap-3">
+                                        <h2 className="text-xl md:text-2xl font-heading font-black uppercase text-red-500">GitHub Manager</h2>
+                                        <span className="px-2.5 py-0.5 text-[10px] font-mono font-bold uppercase tracking-wider bg-red-500/10 text-red-400 border border-red-500/30 rounded">
+                                            {repos.length} Repositories
+                                        </span>
+                                    </div>
+                                    <p className="text-[10px] font-mono opacity-60 uppercase tracking-widest mt-1">Control repository visibility, featured slideshows, and ordering across the entire site.</p>
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex flex-wrap gap-2">
+                                    <button 
+                                        onClick={syncRepos} 
+                                        disabled={syncingRepos}
+                                        className="flex items-center gap-1.5 px-3 py-2 text-[9px] font-mono uppercase tracking-widest border border-white/10 hover:border-red-500 hover:text-red-400 disabled:opacity-50 transition-colors"
+                                        title="Force fetch all repositories from GitHub API"
+                                    >
+                                        <RefreshCw size={11} className={syncingRepos ? "animate-spin text-red-500" : ""} />
+                                        {syncingRepos ? "Syncing..." : "Sync GitHub"}
+                                    </button>
                                     <button onClick={() => bulkAction("showAll")} className="px-3 py-2 text-[9px] font-mono uppercase tracking-widest border border-white/10 hover:border-green-500 hover:text-green-500 transition-colors">Show All</button>
                                     <button onClick={() => bulkAction("hideAll")} className="px-3 py-2 text-[9px] font-mono uppercase tracking-widest border border-white/10 hover:border-red-500 hover:text-red-500 transition-colors">Hide All</button>
                                 </div>
@@ -466,15 +501,19 @@ const Admin = () => {
                                 <div className="relative flex-1">
                                     <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
                                     <input
-                                        type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search repositories..."
+                                        type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search repositories by name..."
                                         className="w-full pl-9 pr-4 py-2.5 bg-white/5 border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-red-500 transition-colors"
                                     />
                                 </div>
                                 <div className="flex gap-1">
-                                    {(["all", "visible", "hidden"] as const).map(f => (
-                                        <button key={f} onClick={() => setFilter(f)}
-                                            className={`px-3 py-2.5 text-[9px] font-mono uppercase tracking-widest border transition-colors ${filter === f ? 'border-red-500 text-red-500 bg-red-500/10' : 'border-white/10 text-white/40 hover:text-white'}`}>
-                                            {f}
+                                    {([
+                                        { key: "all", label: `All (${repos.length})` },
+                                        { key: "visible", label: `Visible (${visibleCount})` },
+                                        { key: "hidden", label: `Hidden (${hiddenIds.length})` }
+                                    ] as const).map(f => (
+                                        <button key={f.key} onClick={() => setFilter(f.key)}
+                                            className={`px-3 py-2.5 text-[9px] font-mono uppercase tracking-widest border transition-colors ${filter === f.key ? 'border-red-500 text-red-500 bg-red-500/10 font-bold' : 'border-white/10 text-white/40 hover:text-white'}`}>
+                                            {f.label}
                                         </button>
                                     ))}
                                 </div>
@@ -528,9 +567,9 @@ const Admin = () => {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[640px] overflow-y-auto pr-2 custom-scrollbar">
                                 {filteredRepos.length === 0 ? (
-                                    <div className="col-span-full text-center py-12 text-white/40 font-mono text-xs uppercase">No repositories match.</div>
+                                    <div className="col-span-full text-center py-12 text-white/40 font-mono text-xs uppercase">No repositories match current filters.</div>
                                 ) : filteredRepos.map(repo => {
                                     const isHidden = hiddenIds.includes(repo.id);
                                     const isHomeFeat = homeFeaturedIds.includes(repo.id);
@@ -571,6 +610,11 @@ const Admin = () => {
                                         </div>
                                     );
                                 })}
+                            </div>
+
+                            <div className="flex items-center justify-between pt-2 border-t border-white/5 text-[10px] font-mono opacity-50 uppercase tracking-widest">
+                                <span>Showing {filteredRepos.length} of {repos.length} Repositories</span>
+                                <span>{hiddenIds.length} Hidden · {repos.length - hiddenIds.length} Visible</span>
                             </div>
                         </motion.section>
 

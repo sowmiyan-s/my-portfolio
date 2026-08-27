@@ -116,7 +116,7 @@ const BlogSection = () => {
 
     const activePosts = posts.length > 0 ? posts : fallbackMediumPosts;
     const duplicatedPosts = [...activePosts, ...activePosts, ...activePosts, ...activePosts, ...activePosts, ...activePosts];
-    const durationSeconds = Math.max(activePosts.length * 6, 45);
+    const durationSeconds = Math.max(activePosts.length * 15, 90);
 
     return (
         <section id="blog" className="relative py-12 md:py-20 bg-transparent border-y border-white/10 z-10 overflow-hidden">

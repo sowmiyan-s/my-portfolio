@@ -4,11 +4,17 @@ const CustomCursor = () => {
     const cursorRef = useRef<HTMLDivElement>(null);
     const coordsRef = useRef<HTMLDivElement>(null);
 
-    // Only enable on precise-pointer devices (skip touch/mobile for perf & UX)
-    const [enabled] = useState(() =>
-        typeof window !== 'undefined' &&
-        window.matchMedia('(hover: hover) and (pointer: fine)').matches
-    );
+    // Only enable on precise-pointer desktop devices (skip all touch/mobile/tablet devices)
+    const [enabled] = useState(() => {
+        if (typeof window === 'undefined') return false;
+        const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        const isCoarse = window.matchMedia('(pointer: coarse)').matches;
+        const hasNoHover = window.matchMedia('(hover: none)').matches;
+        const isSmallScreen = window.innerWidth <= 1024;
+        const mobileUA = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i.test(navigator.userAgent.toLowerCase());
+        
+        return !isCoarse && !hasNoHover && !mobileUA && !(hasTouch && isSmallScreen) && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    });
 
     const [isHovering, setIsHovering] = useState(false);
     const [isClicking, setIsClicking] = useState(false);

@@ -58,14 +58,48 @@ const TargetCursor: React.FC<TargetCursorProps> = ({
   const tickerFnRef = useRef<(() => void) | null>(null);
   const activeStrengthRef = useRef(0);
 
-  const isMobile = useMemo(() => {
-    if (typeof window === 'undefined') return false;
+  const [isMobile, setIsMobile] = React.useState(() => {
+    if (typeof window === 'undefined') return true;
     const hasTouchScreen = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    const isSmallScreen = window.innerWidth <= 768;
+    const isSmallScreen = window.innerWidth <= 1024;
+    const isCoarse = window.matchMedia('(pointer: coarse)').matches;
+    const hasNoHover = window.matchMedia('(hover: none)').matches;
     const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera || '';
-    const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
+    const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i;
     const isMobileUserAgent = mobileRegex.test(userAgent.toLowerCase());
-    return (hasTouchScreen && isSmallScreen) || isMobileUserAgent;
+    return isCoarse || hasNoHover || (hasTouchScreen && isSmallScreen) || isMobileUserAgent;
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const checkMobile = () => {
+      const hasTouchScreen = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      const isSmallScreen = window.innerWidth <= 1024;
+      const isCoarse = window.matchMedia('(pointer: coarse)').matches;
+      const hasNoHover = window.matchMedia('(hover: none)').matches;
+      const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera || '';
+      const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i;
+      const isMobileUA = mobileRegex.test(userAgent.toLowerCase());
+      const mobile = isCoarse || hasNoHover || (hasTouchScreen && isSmallScreen) || isMobileUA;
+      setIsMobile(mobile);
+      if (mobile) {
+        document.body.style.cursor = '';
+      }
+    };
+
+    const coarseMediaQuery = window.matchMedia('(pointer: coarse)');
+    const hoverMediaQuery = window.matchMedia('(hover: none)');
+    window.addEventListener('resize', checkMobile, { passive: true });
+    window.addEventListener('orientationchange', checkMobile, { passive: true });
+    coarseMediaQuery.addEventListener?.('change', checkMobile);
+    hoverMediaQuery.addEventListener?.('change', checkMobile);
+
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('orientationchange', checkMobile);
+      coarseMediaQuery.removeEventListener?.('change', checkMobile);
+      hoverMediaQuery.removeEventListener?.('change', checkMobile);
+    };
   }, []);
 
   const constants = useMemo(
@@ -88,7 +122,10 @@ const TargetCursor: React.FC<TargetCursorProps> = ({
   }, []);
 
   useEffect(() => {
-    if (isMobile || !cursorRef.current) return;
+    if (isMobile || !cursorRef.current) {
+      document.body.style.cursor = '';
+      return;
+    }
 
     const originalCursor = document.body.style.cursor;
     if (hideDefaultCursor) {

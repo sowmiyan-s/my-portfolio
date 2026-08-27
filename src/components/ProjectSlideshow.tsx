@@ -107,7 +107,7 @@ const ProjectSlideshow = () => {
               className="grid grid-cols-1 lg:grid-cols-12 min-h-[380px] md:min-h-[460px] w-full"
             >
               {/* ─── LEFT: Full-Width Aspect Ratio Media Preview (lg:col-span-7) ─── */}
-              <div className="lg:col-span-7 relative w-full h-[240px] sm:h-[320px] md:h-[400px] lg:h-full min-h-[260px] lg:min-h-[460px] bg-[#0d1117] overflow-hidden group flex items-center justify-center border-b lg:border-b-0 lg:border-r border-white/10">
+              <div className="lg:col-span-7 relative w-full h-[220px] sm:h-[300px] md:h-[380px] lg:h-full min-h-[220px] lg:min-h-[460px] bg-[#0d1117] overflow-hidden group flex items-center justify-center border-b lg:border-b-0 lg:border-r border-white/10">
                 <img 
                   src={imageUrl} 
                   alt={current.name} 
@@ -118,15 +118,15 @@ const ProjectSlideshow = () => {
                 />
                 
                 {/* Subtle Gradient Shade for Contrast */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
 
                 {/* Status Badges on Media */}
-                <div className="absolute top-3 left-3 sm:top-4 sm:left-4 flex items-center gap-2 z-10">
-                  <span className="bg-red-600 text-white font-mono text-[9px] sm:text-[11px] px-2.5 py-1 uppercase tracking-widest font-bold rounded shadow-md">
+                <div className="absolute top-2.5 left-2.5 sm:top-4 sm:left-4 flex items-center gap-2 z-10">
+                  <span className="bg-red-600 text-white font-mono text-[8px] sm:text-[10px] px-2 py-0.5 sm:px-2.5 sm:py-1 uppercase tracking-widest font-bold rounded shadow-md">
                     PROJECT {String(currentIndex + 1).padStart(2, '0')} / {String(featuredProjects.length).padStart(2, '0')}
                   </span>
                   {current.language && (
-                    <span className="bg-black/80 backdrop-blur-md border border-white/15 text-white/90 font-mono text-[9px] sm:text-[10px] px-2.5 py-1 rounded font-bold uppercase">
+                    <span className="bg-black/80 backdrop-blur-md border border-white/15 text-white/90 font-mono text-[8px] sm:text-[9px] px-2 py-0.5 sm:px-2.5 sm:py-1 rounded font-bold uppercase">
                       {current.language}
                     </span>
                   )}

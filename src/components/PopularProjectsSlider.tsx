@@ -117,13 +117,13 @@ const PopularProjectsSlider = () => {
                     transition={{ duration: isMobile ? 0.25 : 0.45, ease: [0.22, 1, 0.36, 1] }}
                     className="relative w-full border border-white/15 bg-neutral-950/90 rounded-2xl overflow-hidden group shadow-2xl flex flex-col"
                 >
-                    {/* Full-width GitHub OpenGraph Image (Shows entire card left-to-right in full without zoom on mobile) */}
-                    <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] bg-[#0d1117] overflow-hidden border-b border-white/10 flex items-center justify-center p-2 sm:p-0">
+                    {/* Full-width GitHub OpenGraph Image (Edge-to-edge seamless fit) */}
+                    <div className="relative w-full aspect-[16/9] sm:aspect-[1200/630] bg-[#0d1117] overflow-hidden border-b border-white/10">
                         <img
                             src={socialImg(current.name)}
                             alt={formatRepoName(current.name)}
                             loading="lazy"
-                            className="w-full h-full object-contain sm:object-cover transition-transform duration-500 rounded-lg sm:rounded-none"
+                            className="w-full h-full object-cover transition-transform duration-500"
                             onError={(e) => {
                                 (e.currentTarget as HTMLImageElement).style.display = 'none';
                             }}

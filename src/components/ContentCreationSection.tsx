@@ -76,7 +76,7 @@ const ContentCreationSection = () => {
     };
 
     const duplicated = videos.length ? [...videos, ...videos, ...videos, ...videos, ...videos, ...videos] : [];
-    const durationSeconds = Math.max(videos.length * 6, 45);
+    const durationSeconds = Math.max(videos.length * 15, 90);
 
     return (
         <section className="relative py-12 md:py-20 bg-transparent z-10 overflow-hidden w-full">

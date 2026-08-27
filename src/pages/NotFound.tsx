@@ -38,9 +38,9 @@ const NotFound = () => {
             transition={{ delay: 0.4, duration: 0.6 }}
             className="flex flex-col gap-4 items-center"
           >
-            <span className="text-xs font-mono text-primary uppercase tracking-[0.5em]">[ SIGNAL LOST ]</span>
+            <span className="text-xs font-mono text-primary uppercase tracking-widest">Page Not Found</span>
             <p className="text-sm font-mono text-muted-foreground max-w-md">
-              The requested route <span className="text-primary">{location.pathname}</span> does not exist in this system.
+              The requested page <span className="text-primary">{location.pathname}</span> could not be found.
             </p>
           </motion.div>
 
@@ -63,7 +63,7 @@ const NotFound = () => {
             transition={{ delay: 0.8, duration: 0.5 }}
             className="text-[10px] font-mono uppercase tracking-widest"
           >
-            ERR::ROUTE_NOT_FOUND // STATUS: 404
+            404 - Page Not Found
           </motion.span>
         </div>
       </div>

@@ -1,386 +1,403 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Briefcase, Code, Cpu } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowUpRight, Check, Copy, Send, Loader2, Mail, Phone, MapPin, Github, Linkedin, FileText, Sparkles, MessageSquare, User } from 'lucide-react';
 import TechNav from '@/components/TechNav';
 import Footer from '@/components/Footer';
-import PageHero from '@/components/PageHero';
-import ScrambleText from '@/components/ScrambleText';
-import MagicBento from '@/components/MagicBento';
-import AcidSquares from '@/components/AcidSquares';
+import ProjectPattern from '@/components/ProjectPattern';
 import SEOKeywords from '@/components/SEOKeywords';
 import SEO from '@/components/SEO';
-import { useThemeColors } from '@/lib/useThemeColors';
+import { toast } from '@/hooks/use-toast';
 
-const offeringCards = [
-    {
-        title: "HIRE ME",
-        subtitle: "Full-Time & Internships",
-        desc: "Ready to join dynamic engineering teams. Passionate about bringing advanced Generative AI and robust Full-Stack architectures to your codebase.",
-        icon: Briefcase,
-        color: "text-red-500",
-        actionText: "View Resume",
-        actionUrl: "https://drive.google.com/file/d/1NmangaAFo0eGT-KAsZi4VWOm6zI-KPk6/view?usp=sharing",
-        features: [
-            "AI Engineer / Full-Stack",
-            "LLM & Multi-Agent systems",
-            "Next.js / React / TypeScript",
-            "Python / FastAPI / SQL",
-            "Namakkal, TN / Relocatable"
-        ]
-    },
-    {
-        title: "FREELANCE WORKS",
-        subtitle: "Custom MVPs & Apps",
-        desc: "Turning your creative ideas into production-ready software. Providing end-to-end frontend/backend solutions, custom AI tools, and integrations.",
-        icon: Code,
-        color: "text-emerald-400",
-        actionText: "Pitch Project",
-        actionUrl: "https://wa.me/919042561295?text=Hi%20Sowmiyan,%20I%20have%20a%20freelance%20project%20idea.",
-        features: [
-            "Custom MVP Development",
-            "Generative AI UI / Chatbots",
-            "Third-party API Integration",
-            "Responsive Web Applications",
-            "Maintenance & Handover"
-        ]
-    },
-    {
-        title: "TECH SOLUTIONS",
-        subtitle: "AI Integrations & Automations",
-        desc: "Consulting and building advanced tech solutions like LLM automation workflows, multi-agent frameworks, prompt tuning, and databases.",
-        icon: Cpu,
-        color: "text-blue-400",
-        actionText: "Consult Now",
-        actionUrl: "mailto:sowmisowmiyan58@gmail.com?subject=Consulting%20Inquiry%20-%20Tech%20Solutions",
-        features: [
-            "LLM & RAG Systems",
-            "Multi-Agent Frameworks",
-            "Vector DB & Embeddings",
-            "Performance Tuning",
-            "1-on-1 Tech Consulting"
-        ]
-    }
+const RESUME_URL = "https://drive.google.com/file/d/1NmangaAFo0eGT-KAsZi4VWOm6zI-KPk6/view?usp=sharing";
+
+const categories = [
+    "Hire Me",
+    "Freelance Work",
+    "General"
 ];
 
 const ContactPage = () => {
-    const { primary, secondary } = useThemeColors();
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [category, setCategory] = useState(categories[0]);
+    const [message, setMessage] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+    const [copiedEmail, setCopiedEmail] = useState(false);
+
+    const handleCopyEmail = () => {
+        navigator.clipboard.writeText('sowmisowmiyan58@gmail.com');
+        setCopiedEmail(true);
+        toast({
+            title: "Email Copied",
+            description: "sowmisowmiyan58@gmail.com copied to clipboard."
+        });
+        setTimeout(() => setCopiedEmail(false), 2000);
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!name.trim() || !email.trim() || !message.trim()) {
+            toast({
+                title: "Incomplete Fields",
+                description: "Please fill out your name, email, and message.",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        setIsSubmitting(true);
+        setSubmitStatus('idle');
+
+        try {
+            const endpoint = 'https://formsubmit.co/ajax/sowmisowmiyan58@gmail.com';
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    "Sender Name": name.trim(),
+                    "Sender Email": email.trim(),
+                    "Inquiry Type": category,
+                    "Message": message.trim(),
+
+                    _subject: `[Portfolio Inquiry] ${category} from ${name.trim()}`,
+                    _replyto: email.trim(),
+                    _template: 'table',
+                    _captcha: 'false',
+                    _autoresponse: `Hi ${name.trim()},\n\nThank you for reaching out through my portfolio. I have received your message regarding "${category}" and will reply to you directly within 24 hours.\n\nBest regards,\nSowmiyan S\nAI Engineer & Full-Stack Developer\nhttps://www.sowmiyan.me`
+                })
+            });
+
+            if (response.ok) {
+                setSubmitStatus('success');
+                setName('');
+                setEmail('');
+                setMessage('');
+                toast({
+                    title: "Message Delivered",
+                    description: "Thank you! Your note has been delivered to sowmisowmiyan58@gmail.com."
+                });
+            } else {
+                throw new Error("Submission failed");
+            }
+        } catch (err) {
+            console.warn("Form submit fallback triggered:", err);
+            setSubmitStatus('error');
+            toast({
+                title: "Unable to Send Automatically",
+                description: "Click below to send via your email client directly.",
+                variant: "destructive"
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleMailtoFallback = () => {
+        const mailtoUrl = `mailto:sowmisowmiyan58@gmail.com?subject=${encodeURIComponent(
+            `Inquiry: ${category} - ${name || 'Prospective Partner'}`
+        )}&body=${encodeURIComponent(
+            `Hi Sowmiyan,\n\nMy name is ${name}.\nType: ${category}\n\n${message}`
+        )}`;
+        window.location.href = mailtoUrl;
+    };
 
     return (
-        <div className="relative min-h-screen text-white selection:bg-red-600 overflow-x-hidden bg-[#0a0a0a]">
+        <div className="relative min-h-screen text-white bg-[#0a0a0a] selection:bg-red-600 font-sans antialiased overflow-x-hidden">
             <SEO 
-                title="Contact & Collaboration Inquiries — Sowmiyan S | AI Developer"
-                description="Connect with Sowmiyan S for full-time engineering roles, AI consulting, RAG architectures, and custom full-stack development."
+                title="Contact — Sowmiyan S | AI Engineer & Full-Stack Developer"
+                description="Get in touch with Sowmiyan S for software engineering opportunities, AI projects, and freelance full-stack applications."
                 canonical="https://www.sowmiyan.me/contact"
             />
             <SEOKeywords />
-            {/* Fixed AcidSquares Background */}
-            <div className="fixed inset-0 z-0 pointer-events-none opacity-85">
-                <AcidSquares
-                    key={primary}
-                    color1={primary}
-                    color2={secondary}
-                    color3="#ffffff"
-                    detail="medium"
-                    speed={0.5}
-                    waveDepth={0.8}
-                    zoom={1.3}
-                    density={10.0}
-                    glow={1.0}
-                    exposure={2500}
-                    spread={0.3}
-                    stepSize={0.002}
-                    colorShift={0}
-                    contrast={1}
-                    brightness={1.0}
-                    opacity={0.85}
-                    mouseInteraction={true}
-                    mouseStrength={0.15}
-                    mouseRadius={0.35}
-                    blur={0}
-                    grain={true}
-                    grainIntensity={0.05}
-                />
-            </div>
-            <style dangerouslySetInnerHTML={{ __html: `
-                .contact-card-container {
-                    --white: hsl(0, 0%, 100%);
-                    --black: hsl(0, 0%, 0%);
-                    --paragraph: hsl(0, 0%, 83%);
-                    --line: hsl(0, 0%, 20%);
-                    --primary: hsl(var(--theme-color));
 
-                    position: relative;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 1.5rem;
-                    padding: 2.25rem 2rem;
-                    border-radius: 1.25rem;
-                    overflow: hidden;
-                    transition: all 0.3s ease;
-                    border: 1px solid rgba(255, 255, 255, 0.05);
-                }
+            <ProjectPattern>
+                <TechNav />
 
-                @media (max-width: 768px) {
-                    .contact-card-container {
-                        padding: 1.5rem 1.25rem;
-                        gap: 1rem;
-                        border-radius: 1rem;
-                    }
-                    .contact-card-container .card__list {
-                        gap: 0.5rem;
-                    }
-                    .contact-card-container .card__list .card__list_item .check {
-                        width: 1rem;
-                        height: 1rem;
-                    }
-                    .contact-card-container .card__list .card__list_item .check .check_svg {
-                        width: 0.65rem;
-                        height: 0.65rem;
-                    }
-                    .contact-card-container .card__list .card__list_item .list_text {
-                        font-size: 0.7rem;
-                    }
-                    .contact-card-container .button-card {
-                        padding: 0.6rem;
-                        font-size: 0.75rem;
-                    }
-                }
-
-                .contact-card-container .card__bg {
-                    position: absolute;
-                    inset: 1px;
-                    border-radius: 1.2rem;
-                    background-color: #050505;
-                    background-image: 
-                        radial-gradient(at 88% 40%, #050505 0px, transparent 85%),
-                        radial-gradient(at 49% 30%, #050505 0px, transparent 85%),
-                        radial-gradient(at 14% 26%, #050505 0px, transparent 85%),
-                        radial-gradient(at 0% 64%, hsla(var(--theme-color), 0.15) 0px, transparent 85%),
-                        radial-gradient(at 41% 94%, hsla(var(--theme-color), 0.2) 0px, transparent 85%),
-                        radial-gradient(at 100% 99%, hsla(var(--theme-color), 0.25) 0px, transparent 85%);
-                    box-shadow: 0px -16px 24px 0px rgba(255, 255, 255, 0.05) inset;
-                    z-index: 2;
-                    pointer-events: none;
-                }
-
-                .contact-card-container:hover {
-                    border-color: hsla(var(--theme-color), 0.4);
-                    box-shadow: 0px 0px 30px hsla(var(--theme-color), 0.15);
-                }
-
-                .contact-card-container .card__border {
-                    overflow: hidden;
-                    pointer-events: none;
-                    position: absolute;
-                    z-index: 1;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    width: calc(100% + 2px);
-                    height: calc(100% + 2px);
-                    border-radius: 1.25rem;
-                    opacity: 0.15;
-                    transition: opacity 0.3s ease;
-                }
-
-                .contact-card-container:hover .card__border {
-                    opacity: 1;
-                }
-
-                .contact-card-container .card__border::before {
-                    content: "";
-                    pointer-events: none;
-                    position: absolute;
-                    z-index: 2;
-                    top: -50%;
-                    left: -50%;
-                    width: 200%;
-                    height: 200%;
-                    background-image: conic-gradient(
-                        transparent,
-                        hsl(var(--theme-color)) 10%,
-                        transparent 30%
-                    );
-                    animation: rotate-card-border 6s linear infinite;
-                }
-
-                @keyframes rotate-card-border {
-                    to {
-                        transform: rotate(360deg);
-                    }
-                }
-
-                .contact-card-container .button-card {
-                    cursor: pointer;
-                    padding: 0.75rem;
-                    width: 100%;
-                    background-image: linear-gradient(
-                        0deg,
-                        hsla(var(--theme-color), 0.9) 0%,
-                        hsl(var(--theme-color)) 100%
-                    );
-                    font-size: 0.8rem;
-                    font-weight: 700;
-                    text-transform: uppercase;
-                    letter-spacing: 0.1em;
-                    color: var(--white);
-                    border: 0;
-                    border-radius: 9999px;
-                    box-shadow: inset 0 -2px 25px -4px var(--white);
-                    transition: transform 0.2s, opacity 0.2s;
-                }
-
-                .contact-card-container .button-card:hover {
-                    transform: scale(1.02);
-                    opacity: 0.95;
-                }
-
-                .contact-card-container .line {
-                    width: 100%;
-                    height: 1px;
-                    background-color: var(--line);
-                    border: none;
-                    margin: 0.5rem 0;
-                }
-
-                .contact-card-container .card__list {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 0.75rem;
-                    flex-grow: 1;
-                    padding: 0;
-                    margin: 0;
-                    list-style: none;
-                }
-
-                .contact-card-container .card__list .card__list_item {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.75rem;
-                }
-
-                .contact-card-container .card__list .card__list_item .check {
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    width: 1.25rem;
-                    height: 1.25rem;
-                    background-color: var(--primary);
-                    border-radius: 50%;
-                    flex-shrink: 0;
-                }
-
-                .contact-card-container .card__list .card__list_item .check .check_svg {
-                    width: 0.85rem;
-                    height: 0.85rem;
-                    fill: var(--black) !important;
-                    color: var(--black) !important;
-                }
-
-                .contact-card-container .card__list .card__list_item .list_text {
-                    font-size: 0.8rem;
-                    color: var(--white);
-                    font-family: monospace;
-                }
-            `}} />
-
-            <TechNav />
-
-            <main className="relative z-10">
-                <PageHero
-                    sectionNumber="Contact"
-                    title="Get in Touch"
-                    subtitle="Available for freelance projects, internships and full-time roles."
-                />
-
-                <section className="relative w-full py-20 md:py-28 px-4 sm:px-6 flex flex-col items-center justify-center overflow-hidden">
-                    <div className="relative z-10 max-w-6xl w-full mx-auto flex flex-col items-center gap-6">
-
-                        {/* Direct Action Buttons */}
-                        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 w-full justify-center max-w-2xl mb-12">
-                            <motion.a
-                                href="mailto:sowmisowmiyan58@gmail.com"
-                                whileHover={{ y: -2 }}
-                                className="flex-1 px-6 md:px-10 py-4 md:py-5 border border-white/10 bg-white/5 hover:bg-white hover:text-black hover:border-white transition-colors font-heading font-bold uppercase tracking-widest text-xs md:text-sm text-center flex items-center justify-center gap-3 rounded-xl cursor-pointer"
-                            >
-                                <ScrambleText text="Email Direct" triggerOnHover triggerOnView className="text-current" />
-                            </motion.a>
-
-                            <motion.a
-                                href="https://wa.me/919042561295"
-                                target="_blank"
-                                rel="noreferrer"
-                                whileHover={{ y: -2 }}
-                                className="flex-1 px-6 md:px-10 py-4 md:py-5 border border-red-600 bg-red-600/10 hover:bg-red-600 hover:text-white text-red-500 transition-colors font-heading font-bold uppercase tracking-widest text-xs md:text-sm text-center flex items-center justify-center gap-3 rounded-xl cursor-pointer"
-                            >
-                                <ScrambleText text="WhatsApp Direct" triggerOnHover triggerOnView className="text-current" />
-                            </motion.a>
+                <main className="relative z-10 pt-24 md:pt-32 pb-24 px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto flex flex-col gap-12 sm:gap-16">
+                    
+                    {/* Header */}
+                    <div className="flex flex-col gap-4 max-w-3xl">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 w-fit text-xs font-mono text-white/80">
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                            <span>Available for new opportunities</span>
                         </div>
 
-                        {/* Feature Cards Grid with MagicBento Effect */}
-                        <MagicBento 
-                            glowColor="239, 68, 68"
-                            enableStars={true}
-                            enableSpotlight={true}
-                            enableBorderGlow={true}
-                            enableTilt={true}
-                            enableMagnetism={true}
-                            clickEffect={true}
-                            spotlightRadius={320}
-                            particleCount={14}
-                            cards={offeringCards.map((card) => ({
-                                title: card.title,
-                                description: card.desc,
-                                label: card.subtitle,
-                                color: '#0a0a0a',
-                                customContent: (
-                                    <div className="flex flex-col justify-between h-full gap-4 relative z-10 w-full">
-                                        <div className="flex flex-col gap-3 text-left">
-                                            <div className="flex justify-between items-center">
-                                                <span className="font-heading text-lg font-black tracking-wider uppercase text-white">
-                                                    {card.title}
-                                                </span>
-                                                <span className="text-[10px] font-mono uppercase tracking-widest text-red-500 bg-red-600/10 border border-red-500/30 px-2.5 py-1 rounded-full">
-                                                    {card.subtitle}
+                        <h1 className="text-3xl sm:text-5xl md:text-6xl font-heading font-black text-white uppercase tracking-tight">
+                            Let’s Connect & Collaborate
+                        </h1>
+
+                        <p className="text-sm sm:text-base text-white/70 font-sans leading-relaxed">
+                            Have an exciting job opportunity, full-stack project, or AI workflow to build? Feel free to reach out via the form below or through direct channels.
+                        </p>
+                    </div>
+
+                    {/* 2-Column Responsive Layout */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+                        
+                        {/* LEFT: Direct Contact Channels (lg:col-span-5) */}
+                        <div className="lg:col-span-5 flex flex-col gap-6">
+                            
+                            {/* Direct Email Box */}
+                            <div className="p-6 rounded-2xl bg-neutral-950/80 border border-white/10 backdrop-blur-xl shadow-xl flex flex-col gap-3">
+                                <span className="text-xs font-mono uppercase tracking-wider text-white/50">
+                                    Direct Email
+                                </span>
+                                <div className="flex items-center justify-between gap-3">
+                                    <a 
+                                        href="mailto:sowmisowmiyan58@gmail.com"
+                                        className="text-base sm:text-lg font-bold text-white hover:text-red-400 transition-colors truncate"
+                                    >
+                                        sowmisowmiyan58@gmail.com
+                                    </a>
+                                    <button
+                                        onClick={handleCopyEmail}
+                                        type="button"
+                                        className="p-2.5 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 text-white/80 hover:text-white transition-all shrink-0 cursor-pointer"
+                                        title="Copy Email"
+                                    >
+                                        {copiedEmail ? <Check size={16} className="text-emerald-400" /> : <Copy size={16} />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Location & WhatsApp */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="p-5 rounded-2xl bg-neutral-950/80 border border-white/10 backdrop-blur-xl flex flex-col gap-2">
+                                    <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-red-500">
+                                        <MapPin size={16} />
+                                    </div>
+                                    <span className="text-xs font-mono uppercase tracking-wider text-white/50">Location</span>
+                                    <span className="text-sm text-white font-medium">
+                                        Namakkal, Tamil Nadu <br />
+                                        <span className="text-xs text-white/50">Remote / Relocatable</span>
+                                    </span>
+                                </div>
+
+                                <a 
+                                    href="https://wa.me/919042561295"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="p-5 rounded-2xl bg-neutral-950/80 border border-white/10 hover:border-emerald-500/50 backdrop-blur-xl transition-all flex flex-col gap-2 group"
+                                >
+                                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                                        <Phone size={16} />
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs font-mono uppercase tracking-wider text-white/50">WhatsApp</span>
+                                        <ArrowUpRight size={14} className="text-white/40 group-hover:text-emerald-400 transition-colors" />
+                                    </div>
+                                    <span className="text-sm text-white font-medium group-hover:text-emerald-400 transition-colors">
+                                        +91 90425 61295
+                                    </span>
+                                </a>
+                            </div>
+
+                            {/* Social & Resume Cards */}
+                            <div className="flex flex-wrap gap-2.5">
+                                <a
+                                    href="https://linkedin.com/in/sowmiyan-s"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-950/80 hover:bg-white/10 border border-white/10 text-xs font-mono text-white/80 hover:text-white transition-all"
+                                >
+                                    <Linkedin size={14} className="text-blue-400" />
+                                    <span>LinkedIn</span>
+                                    <ArrowUpRight size={12} className="opacity-50" />
+                                </a>
+
+                                <a
+                                    href="https://github.com/sowmiyan-s"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-950/80 hover:bg-white/10 border border-white/10 text-xs font-mono text-white/80 hover:text-white transition-all"
+                                >
+                                    <Github size={14} />
+                                    <span>GitHub</span>
+                                    <ArrowUpRight size={12} className="opacity-50" />
+                                </a>
+
+                                <a
+                                    href={RESUME_URL}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-950/80 hover:bg-white/10 border border-white/10 text-xs font-mono text-white/80 hover:text-white transition-all ml-auto"
+                                >
+                                    <FileText size={14} className="text-red-400" />
+                                    <span>Resume ↗</span>
+                                </a>
+                            </div>
+
+                            {/* Response Note */}
+                            <div className="flex items-center gap-3 p-4 rounded-xl bg-neutral-950/60 border border-white/10 text-xs text-white/60 font-sans">
+                                <Sparkles size={16} className="text-amber-400 shrink-0" />
+                                <span>I respond promptly to all genuine inquiries within 24 hours.</span>
+                            </div>
+                        </div>
+
+                        {/* RIGHT: Contact Form (lg:col-span-7) */}
+                        <div className="lg:col-span-7 p-6 sm:p-8 md:p-10 rounded-2xl bg-neutral-950/80 border border-white/10 backdrop-blur-xl shadow-2xl flex flex-col gap-6">
+                            
+                            <div className="flex flex-col gap-1 border-b border-white/10 pb-4">
+                                <h2 className="text-xl sm:text-2xl font-heading font-black text-white uppercase tracking-tight">
+                                    Send a Message
+                                </h2>
+                                <p className="text-xs sm:text-sm text-white/60 font-sans">
+                                    Fill in the details below and it will land straight in my inbox.
+                                </p>
+                            </div>
+
+                            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                                
+                                {/* 3 Category Buttons: Hire Me / Freelance Work / General */}
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-xs font-mono uppercase tracking-wider text-white/60">
+                                        Inquiry Type
+                                    </label>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {categories.map((cat) => (
+                                            <button
+                                                type="button"
+                                                key={cat}
+                                                onClick={() => setCategory(cat)}
+                                                className={`py-2.5 px-3 rounded-xl text-xs font-mono uppercase tracking-wider transition-all border text-center cursor-pointer ${
+                                                    category === cat
+                                                        ? 'bg-red-600 text-white font-bold border-red-600 shadow-md'
+                                                        : 'bg-white/5 text-white/70 border-white/10 hover:text-white hover:border-white/20'
+                                                }`}
+                                            >
+                                                {cat}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Name & Email Fields */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-xs font-mono uppercase tracking-wider text-white/70 flex items-center gap-1.5">
+                                            <User size={12} className="text-red-500" />
+                                            Your Name *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value)}
+                                            placeholder="Alex Morgan"
+                                            className="w-full px-4 py-3 bg-white/5 border border-white/10 hover:border-white/20 focus:border-red-600 rounded-xl text-white text-sm font-sans focus:outline-none transition-all placeholder:text-white/30"
+                                        />
+                                    </div>
+
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-xs font-mono uppercase tracking-wider text-white/70 flex items-center gap-1.5">
+                                            <Mail size={12} className="text-red-500" />
+                                            Your Email Address *
+                                        </label>
+                                        <input
+                                            type="email"
+                                            required
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            placeholder="alex@example.com"
+                                            className="w-full px-4 py-3 bg-white/5 border border-white/10 hover:border-white/20 focus:border-red-600 rounded-xl text-white text-sm font-sans focus:outline-none transition-all placeholder:text-white/30"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Message Field */}
+                                <div className="flex flex-col gap-1.5">
+                                    <div className="flex justify-between items-center">
+                                        <label className="text-xs font-mono uppercase tracking-wider text-white/70 flex items-center gap-1.5">
+                                            <MessageSquare size={12} className="text-red-500" />
+                                            Message *
+                                        </label>
+                                        <span className="text-xs font-mono text-white/40">
+                                            {message.length} chars
+                                        </span>
+                                    </div>
+                                    <textarea
+                                        required
+                                        rows={5}
+                                        value={message}
+                                        onChange={(e) => setMessage(e.target.value)}
+                                        placeholder="Share your requirements, role details, or questions..."
+                                        className="w-full px-4 py-3 bg-white/5 border border-white/10 hover:border-white/20 focus:border-red-600 rounded-xl text-white text-sm font-sans focus:outline-none transition-all placeholder:text-white/30 resize-none leading-relaxed"
+                                    />
+                                </div>
+
+                                {/* Feedback Alerts */}
+                                <AnimatePresence>
+                                    {submitStatus === 'success' && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: -5 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0 }}
+                                            className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-start gap-3 text-emerald-400"
+                                        >
+                                            <Check size={18} className="shrink-0 mt-0.5" />
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-bold">Message Delivered!</span>
+                                                <span className="text-xs text-white/80">
+                                                    Thank you! Your note has been delivered to sowmisowmiyan58@gmail.com and I will reply soon.
                                                 </span>
                                             </div>
+                                        </motion.div>
+                                    )}
 
-                                            <p className="font-mono text-xs text-white/70 leading-relaxed min-h-[50px]">
-                                                {card.desc}
-                                            </p>
-                                        </div>
-
-                                        <hr className="border-white/10 my-1" />
-
-                                        <ul className="flex flex-col gap-2 my-auto">
-                                            {card.features.map((feat, idx) => (
-                                                <li key={idx} className="flex items-center gap-2 text-xs font-mono text-white/80">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
-                                                    <span>{feat}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-
-                                        <div className="mt-4">
-                                            <a
-                                                href={card.actionUrl}
-                                                target={card.actionUrl.startsWith('http') ? '_blank' : '_self'}
-                                                rel="noreferrer"
-                                                className="block w-full text-center py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-heading font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+                                    {submitStatus === 'error' && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: -5 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0 }}
+                                            className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-red-400"
+                                        >
+                                            <span className="text-xs">
+                                                Network error while submitting. Click to open your email client directly.
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={handleMailtoFallback}
+                                                className="px-3.5 py-1.5 bg-red-600 hover:bg-white hover:text-black text-white text-xs font-mono uppercase tracking-wider rounded-lg transition-colors font-bold shrink-0"
                                             >
-                                                {card.actionText} →
-                                            </a>
-                                        </div>
-                                    </div>
-                                )
-                            }))}
-                        />
+                                                Open Email Client →
+                                            </button>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                {/* Submit Button */}
+                                <div className="flex items-center justify-end pt-2 border-t border-white/10">
+                                    <button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-mono text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer shadow-lg hover:shadow-red-600/20"
+                                    >
+                                        {isSubmitting ? (
+                                            <>
+                                                <Loader2 size={14} className="animate-spin" />
+                                                <span>Sending...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span>Send Message</span>
+                                                <Send size={14} />
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
                     </div>
-                </section>
+                </main>
 
-
-            </main>
-            <Footer />
+                <Footer />
+            </ProjectPattern>
         </div>
     );
 };

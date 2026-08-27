@@ -10,6 +10,16 @@
   transform: translate(-50%, -50%);
 }
 
+/* Strictly hide and disable custom cursor on mobile, touch, or small screen devices */
+@media (hover: none), (pointer: coarse), (max-width: 1024px) {
+  .target-cursor-wrapper {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+}
+
 .target-cursor-dot {
   position: absolute;
   left: 50%;

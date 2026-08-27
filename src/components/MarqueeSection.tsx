@@ -38,7 +38,7 @@ const MarqueeSection: React.FC<MarqueeSectionProps> = ({ font = 'audiowide', siz
                         fontFamily: selectedFontFamily,
                         lineHeight: 1.2,
                         letterSpacing: font === 'audiowide' ? '0.08em' : 'normal',
-                        '--marquee-speed': '25s',
+                        '--marquee-speed': '70s',
                     } as React.CSSProperties}
                 >
                     <span className="mx-4">{text}</span>
@@ -53,7 +53,7 @@ const MarqueeSection: React.FC<MarqueeSectionProps> = ({ font = 'audiowide', siz
                         fontFamily: selectedFontFamily,
                         lineHeight: 1.2,
                         letterSpacing: font === 'audiowide' ? '0.08em' : 'normal',
-                        '--marquee-speed': '25s',
+                        '--marquee-speed': '70s',
                     } as React.CSSProperties}
                 >
                     <span className="mx-4">{text}</span>
