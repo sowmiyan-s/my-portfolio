@@ -23,12 +23,15 @@ const TechNav = () => {
     return (
         <nav className="fixed top-0 left-0 w-full z-50 px-3 sm:px-6 py-3 sm:py-4 flex justify-center pointer-events-none">
             <div className="max-w-5xl w-full bg-neutral-950/80 border border-white/15 backdrop-blur-xl pointer-events-auto px-4 sm:px-6 py-2.5 flex items-center justify-between rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
-                {/* Brand Logo / Name */}
+                {/* Brand Logo Icon */}
                 <Link 
                     to="/" 
-                    className="font-heading font-black text-xs sm:text-sm tracking-wider text-white hover:text-red-400 transition-colors uppercase select-none"
+                    className="flex items-center gap-2 group transition-transform hover:scale-105"
+                    aria-label="Home"
                 >
-                    SOWMIYAN S
+                    <div className="w-8 h-8 rounded-full bg-neutral-900 border border-white/20 flex items-center justify-center p-1 group-hover:border-red-500 transition-colors shadow-sm">
+                        <img src="/favicon.svg" alt="S Logo" className="w-full h-full object-contain rounded-full" />
+                    </div>
                 </Link>
 
                 {/* Center links (desktop) */}
