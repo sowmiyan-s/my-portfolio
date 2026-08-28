@@ -9,7 +9,7 @@ export interface SEOProps {
   jsonLd?: Record<string, any> | Array<Record<string, any>>;
 }
 
-const DEFAULT_IMAGE = "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/6d2772f8-22ff-44a6-9179-5d46e64faa2f/id-preview-49b255a6--1dd2f9b7-25de-4262-a6bb-d51d9c0fdf42.lovable.app-1774435126868.png";
+const DEFAULT_IMAGE = "https://www.sowmiyan.me/og-image.png";
 const BASE_URL = "https://www.sowmiyan.me";
 
 export const SEO: React.FC<SEOProps> = ({
