@@ -33,8 +33,11 @@ const Footer = () => {
                             <a href="mailto:sowmisowmiyan58@gmail.com" className="flex items-center gap-3 text-xs font-mono transition-colors hover:text-red-600 uppercase">
                                 <Mail size={14} className="text-red-600" /> <ScrambleText text="Email" triggerOnView speed={0.16} className="text-current" />
                             </a>
+                            <a href="tel:+919042561295" className="flex items-center gap-3 text-xs font-mono transition-colors hover:text-red-600 uppercase" title="Call +91 9042561295">
+                                <Phone size={14} className="text-red-600" /> <span>+91 90425 61295</span>
+                            </a>
                             <a href="https://wa.me/919042561295" target="_blank" rel="noreferrer" className="flex items-center gap-3 text-xs font-mono transition-colors hover:text-red-600 uppercase">
-                                <Phone size={14} className="text-red-600" /> <ScrambleText text="WhatsApp" triggerOnView speed={0.16} className="text-current" />
+                                <Phone size={14} className="text-emerald-500" /> <ScrambleText text="WhatsApp" triggerOnView speed={0.16} className="text-current" />
                             </a>
                         </div>
                     </div>

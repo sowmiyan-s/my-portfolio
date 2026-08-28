@@ -218,13 +218,33 @@ export async function updatePageFeaturedOrderDb(nextFeatured: FeaturedProject[])
   return withPos;
 }
 
-export async function toggleFeaturedProjectDb(
-  repo: { id: number; name: string },
-  currentFeatured: FeaturedProject[],
-): Promise<FeaturedProject[]> {
-  return toggleHomeFeaturedProjectDb(repo, currentFeatured);
-}
+export async function saveAllProjectSettingsDb({
+  hiddenIds,
+  homeFeatured,
+  pageFeatured,
+  repoMap,
+}: {
+  hiddenIds: number[];
+  homeFeatured: FeaturedProject[];
+  pageFeatured: FeaturedProject[];
+  repoMap: Record<number, string>;
+}): Promise<void> {
+  const homeWithPos = homeFeatured.map((f, i) => ({ ...f, position: i }));
+  const pageWithPos = pageFeatured.map((f, i) => ({ ...f, position: i }));
 
-export async function updateFeaturedOrderDb(nextFeatured: FeaturedProject[]): Promise<FeaturedProject[]> {
-  return updateHomeFeaturedOrderDb(nextFeatured);
+  // 1. Persist hidden projects
+  await persistHidden(hiddenIds, repoMap);
+
+  // 2. Persist featured projects
+  try {
+    // Save to remote backend if available
+    await adminCall("set_featured", { items: homeWithPos });
+  } catch (err) {
+    console.info("Supabase adminCall set_featured fallback:", (err as Error).message);
+  }
+
+  // 3. Write caches & trigger system event
+  writeCache(LS_HOME_FEATURED_KEY, homeWithPos);
+  writeCache(LS_PAGE_FEATURED_KEY, pageWithPos);
+  writeCache(LS_HIDDEN_KEY, hiddenIds);
 }

@@ -1,19 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { fetchRepos, clearRepoCache, GitHubRepo } from '@/lib/github';
 import { fetchChannelVideos, YouTubeVideo } from '@/lib/youtube';
 import { supabase } from '@/integrations/supabase/client';
 import { formatRepoName } from '@/lib/formatRepo';
-import { useRealtimeRefetch } from '@/hooks/useRealtimeRefetch';
 import {
     fetchHiddenProjectIds,
     fetchHomeFeaturedProjects,
     fetchPageFeaturedProjects,
-    toggleHiddenProjectDb,
-    setAllHiddenProjectsDb,
-    toggleHomeFeaturedProjectDb,
-    togglePageFeaturedProjectDb,
-    updateHomeFeaturedOrderDb,
-    updatePageFeaturedOrderDb,
+    saveAllProjectSettingsDb,
     FeaturedProject
 } from '@/lib/projectSettings';
 import { adminCall, verifyAdminPassword, setAdminPassword, clearAdminPassword, getAdminPassword } from '@/lib/adminApi';
@@ -22,12 +16,11 @@ import TechNav from '@/components/TechNav';
 import Footer from '@/components/Footer';
 import CyberBackground from '@/components/CyberBackground';
 import PageHero from '@/components/PageHero';
-import { motion } from 'framer-motion';
-import { Star, Eye, EyeOff, Trash2, Plus, Search, Lock, ArrowUp, ArrowDown, RefreshCw, Youtube, Download, Upload, Pencil, Check, X, Radio } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Star, Eye, EyeOff, Trash2, Plus, Search, Lock, ArrowUp, ArrowDown, RefreshCw, Youtube, Download, Upload, Pencil, Check, X, Save, RotateCcw, AlertTriangle } from 'lucide-react';
 
 const AUTH_KEY = "adminAuthenticated";
 type SortMode = "updated" | "stars" | "name";
-
 
 const Admin = () => {
     const [authed, setAuthed] = useState(() => sessionStorage.getItem(AUTH_KEY) === "true" && !!getAdminPassword());
@@ -35,12 +28,21 @@ const Admin = () => {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
 
+    // Repos and Working Draft state
     const [repos, setRepos] = useState<GitHubRepo[]>([]);
     const [hiddenIds, setHiddenIds] = useState<number[]>([]);
     const [homeFeatured, setHomeFeatured] = useState<FeaturedProject[]>([]);
     const [pageFeatured, setPageFeatured] = useState<FeaturedProject[]>([]);
+
+    // Saved State snapshots to compare against
+    const [savedHiddenIds, setSavedHiddenIds] = useState<number[]>([]);
+    const [savedHomeFeatured, setSavedHomeFeatured] = useState<FeaturedProject[]>([]);
+    const [savedPageFeatured, setSavedPageFeatured] = useState<FeaturedProject[]>([]);
+
     const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
     const [syncingRepos, setSyncingRepos] = useState(false);
+
     const [techSkills, setTechSkills] = useState<{ id: string; name: string }[]>([]);
     const [nonTechSkills, setNonTechSkills] = useState<{ id: string; name: string }[]>([]);
     const [newTechSkill, setNewTechSkill] = useState('');
@@ -56,34 +58,63 @@ const Admin = () => {
     const [editingSkillName, setEditingSkillName] = useState('');
     const [bulkTech, setBulkTech] = useState('');
     const [bulkNonTech, setBulkNonTech] = useState('');
-    const [liveTick, setLiveTick] = useState(0);
     const importInputRef = useRef<HTMLInputElement>(null);
 
+    const homeFeaturedIds = useMemo(() => homeFeatured.map(f => f.id), [homeFeatured]);
+    const pageFeaturedIds = useMemo(() => pageFeatured.map(f => f.id), [pageFeatured]);
 
-    const homeFeaturedIds = homeFeatured.map(f => f.id);
-    const pageFeaturedIds = pageFeatured.map(f => f.id);
+    // Check for unsaved changes
+    const hasUnsavedChanges = useMemo(() => {
+        const h1 = [...hiddenIds].sort().join(',');
+        const h2 = [...savedHiddenIds].sort().join(',');
+        if (h1 !== h2) return true;
+
+        const hf1 = homeFeatured.map(f => f.id).join(',');
+        const hf2 = savedHomeFeatured.map(f => f.id).join(',');
+        if (hf1 !== hf2) return true;
+
+        const pf1 = pageFeatured.map(f => f.id).join(',');
+        const pf2 = savedPageFeatured.map(f => f.id).join(',');
+        if (pf1 !== pf2) return true;
+
+        return false;
+    }, [hiddenIds, savedHiddenIds, homeFeatured, savedHomeFeatured, pageFeatured, savedPageFeatured]);
 
     const loadData = async (forceRefresh = false) => {
         setLoading(true);
-        const [repoData, hiddenList, homeList, pageList, skillRes, settingsRes] = await Promise.all([
-            fetchRepos(forceRefresh),
-            fetchHiddenProjectIds(),
-            fetchHomeFeaturedProjects(),
-            fetchPageFeaturedProjects(),
-            supabase.from('skills').select('id, name, category'),
-            supabase.from('site_settings').select('key, value'),
-        ]);
-        setRepos(repoData);
-        setHiddenIds(hiddenList);
-        setHomeFeatured(homeList);
-        setPageFeatured(pageList);
-        setTechSkills((skillRes.data ?? []).filter((s: any) => s.category === 'tech').map((s: any) => ({ id: s.id, name: s.name })));
-        setNonTechSkills((skillRes.data ?? []).filter((s: any) => s.category === 'non-tech').map((s: any) => ({ id: s.id, name: s.name })));
-        for (const row of settingsRes.data ?? []) {
-            if (row.key === 'show_dividers') setShowDividers(!!row.value);
-            if (row.key === 'show_global_ticker') setShowGlobalTicker(!!row.value);
+        try {
+            const [repoData, hiddenList, homeList, pageList, skillRes, settingsRes] = await Promise.all([
+                fetchRepos(forceRefresh),
+                fetchHiddenProjectIds(),
+                fetchHomeFeaturedProjects(),
+                fetchPageFeaturedProjects(),
+                supabase.from('skills').select('id, name, category'),
+                supabase.from('site_settings').select('key, value'),
+            ]);
+
+            setRepos(repoData);
+
+            // Set both active draft and saved reference
+            setHiddenIds(hiddenList);
+            setSavedHiddenIds(hiddenList);
+
+            setHomeFeatured(homeList);
+            setSavedHomeFeatured(homeList);
+
+            setPageFeatured(pageList);
+            setSavedPageFeatured(pageList);
+
+            setTechSkills((skillRes.data ?? []).filter((s: any) => s.category === 'tech').map((s: any) => ({ id: s.id, name: s.name })));
+            setNonTechSkills((skillRes.data ?? []).filter((s: any) => s.category === 'non-tech').map((s: any) => ({ id: s.id, name: s.name })));
+            for (const row of settingsRes.data ?? []) {
+                if (row.key === 'show_dividers') setShowDividers(!!row.value);
+                if (row.key === 'show_global_ticker') setShowGlobalTicker(!!row.value);
+            }
+        } catch (e) {
+            console.error('Error loading admin data:', e);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     const syncRepos = async () => {
@@ -94,12 +125,12 @@ const Admin = () => {
             setRepos(repoData);
             toast({
                 title: 'GitHub Repos Synced',
-                description: `Successfully loaded ${repoData.length} repositories.`
+                description: `Successfully loaded all ${repoData.length} repositories.`
             });
         } catch (err) {
             toast({
                 title: 'Sync Notice',
-                description: 'Loaded repositories from cache and fallback dataset.'
+                description: 'Loaded repositories from cache & full dataset.'
             });
         } finally {
             setSyncingRepos(false);
@@ -113,59 +144,112 @@ const Admin = () => {
         setVideosLoading(false);
     };
 
-    const toggleHomeFeatured = async (repo: GitHubRepo) => {
+    // Staging / Draft handlers (No immediate DB mutation until Save is clicked)
+    const toggleProjectDraft = (id: number) => {
+        setHiddenIds(prev => {
+            const isHidden = prev.includes(id);
+            if (isHidden) {
+                return prev.filter(hId => hId !== id);
+            } else {
+                // If hiding a project that is featured, remove from featured drafts
+                setHomeFeatured(hf => hf.filter(f => f.id !== id));
+                setPageFeatured(pf => pf.filter(f => f.id !== id));
+                return [...prev, id];
+            }
+        });
+    };
+
+    const bulkActionDraft = (action: "hideAll" | "showAll") => {
+        if (action === "hideAll") {
+            const allIds = repos.map(r => r.id);
+            setHiddenIds(allIds);
+            setHomeFeatured([]);
+            setPageFeatured([]);
+            toast({ title: 'Draft: All Hidden', description: 'Click Save to apply changes.' });
+        } else {
+            setHiddenIds([]);
+            toast({ title: 'Draft: All Visible', description: 'Click Save to apply changes.' });
+        }
+    };
+
+    const toggleHomeFeaturedDraft = (repo: GitHubRepo) => {
         const isFeatured = homeFeaturedIds.includes(repo.id);
-        if (!isFeatured && homeFeatured.length >= 3) {
-            toast({ title: 'Limit reached', description: 'Max 3 Home featured projects.' });
-            return;
-        }
-        try {
-            const updated = await toggleHomeFeaturedProjectDb({ id: repo.id, name: repo.name }, homeFeatured);
-            setHomeFeatured(updated);
-            toast({ title: isFeatured ? 'Removed from Home' : '★ Added to Home Featured', description: formatRepoName(repo.name) });
-        } catch (err) {
-            toast({ title: 'Save failed', description: (err as Error).message });
+        if (isFeatured) {
+            setHomeFeatured(prev => prev.filter(f => f.id !== repo.id));
+        } else {
+            if (homeFeatured.length >= 3) {
+                toast({ title: 'Limit reached', description: 'Max 3 Home featured projects.' });
+                return;
+            }
+            setHomeFeatured(prev => [...prev, { id: repo.id, repo_name: repo.name, position: prev.length }]);
         }
     };
 
-    const togglePageFeatured = async (repo: GitHubRepo) => {
+    const togglePageFeaturedDraft = (repo: GitHubRepo) => {
         const isFeatured = pageFeaturedIds.includes(repo.id);
-        if (!isFeatured && pageFeatured.length >= 5) {
-            toast({ title: 'Limit reached', description: 'Max 5 Projects Page featured projects.' });
-            return;
-        }
-        try {
-            const updated = await togglePageFeaturedProjectDb({ id: repo.id, name: repo.name }, pageFeatured);
-            setPageFeatured(updated);
-            toast({ title: isFeatured ? 'Removed from Projects Page' : '🚀 Added to Projects Page Slideshow', description: formatRepoName(repo.name) });
-        } catch (err) {
-            toast({ title: 'Save failed', description: (err as Error).message });
+        if (isFeatured) {
+            setPageFeatured(prev => prev.filter(f => f.id !== repo.id));
+        } else {
+            if (pageFeatured.length >= 5) {
+                toast({ title: 'Limit reached', description: 'Max 5 Projects Page featured projects.' });
+                return;
+            }
+            setPageFeatured(prev => [...prev, { id: repo.id, repo_name: repo.name, position: prev.length }]);
         }
     };
 
-    const moveHomeFeatured = async (idx: number, dir: -1 | 1) => {
+    const moveHomeFeaturedDraft = (idx: number, dir: -1 | 1) => {
         const next = [...homeFeatured];
         const target = idx + dir;
         if (target < 0 || target >= next.length) return;
         [next[idx], next[target]] = [next[target], next[idx]];
-        try {
-            const updated = await updateHomeFeaturedOrderDb(next);
-            setHomeFeatured(updated);
-        } catch (err) {
-            toast({ title: 'Save failed', description: (err as Error).message });
-        }
+        setHomeFeatured(next);
     };
 
-    const movePageFeatured = async (idx: number, dir: -1 | 1) => {
+    const movePageFeaturedDraft = (idx: number, dir: -1 | 1) => {
         const next = [...pageFeatured];
         const target = idx + dir;
         if (target < 0 || target >= next.length) return;
         [next[idx], next[target]] = [next[target], next[idx]];
+        setPageFeatured(next);
+    };
+
+    const discardChanges = () => {
+        setHiddenIds(savedHiddenIds);
+        setHomeFeatured(savedHomeFeatured);
+        setPageFeatured(savedPageFeatured);
+        toast({ title: 'Changes Reset', description: 'Restored to previously saved state.' });
+    };
+
+    // Save all drafted settings and reload page
+    const handleSaveAndReload = async () => {
+        setSaving(true);
         try {
-            const updated = await updatePageFeaturedOrderDb(next);
-            setPageFeatured(updated);
+            const repoMap: Record<number, string> = {};
+            repos.forEach(r => { repoMap[r.id] = r.name; });
+
+            await saveAllProjectSettingsDb({
+                hiddenIds,
+                homeFeatured,
+                pageFeatured,
+                repoMap,
+            });
+
+            toast({
+                title: '✓ Changes Saved Successfully!',
+                description: 'Applying updates and reloading page...'
+            });
+
+            // Reload page so user and site see the exact applied state
+            setTimeout(() => {
+                window.location.reload();
+            }, 600);
         } catch (err) {
-            toast({ title: 'Save failed', description: (err as Error).message });
+            setSaving(false);
+            toast({
+                title: 'Save Failed',
+                description: (err as Error).message
+            });
         }
     };
 
@@ -216,7 +300,8 @@ const Admin = () => {
         const payload = {
             exported_at: new Date().toISOString(),
             hidden: hiddenIds,
-            featured,
+            homeFeatured,
+            pageFeatured,
             skills: { tech: techSkills.map(s => s.name), nonTech: nonTechSkills.map(s => s.name) },
             settings: { show_dividers: showDividers, show_global_ticker: showGlobalTicker },
         };
@@ -232,35 +317,33 @@ const Admin = () => {
         try {
             const text = await file.text();
             const cfg = JSON.parse(text);
+            if (cfg.hidden && Array.isArray(cfg.hidden)) {
+                setHiddenIds(cfg.hidden);
+            }
+            if (cfg.homeFeatured && Array.isArray(cfg.homeFeatured)) {
+                setHomeFeatured(cfg.homeFeatured);
+            }
+            if (cfg.pageFeatured && Array.isArray(cfg.pageFeatured)) {
+                setPageFeatured(cfg.pageFeatured);
+            }
             if (cfg.settings) {
                 await Promise.all([
                     adminCall('set_setting', { key: 'show_dividers', value: !!cfg.settings.show_dividers }),
                     adminCall('set_setting', { key: 'show_global_ticker', value: !!cfg.settings.show_global_ticker }),
                 ]);
             }
-            await loadData();
-            toast({ title: 'Config imported' });
+            toast({ title: 'Config imported to draft', description: 'Click Save to apply and reload.' });
         } catch (e) {
             toast({ title: 'Import failed', description: (e as Error).message });
         }
     };
 
-    useEffect(() => { if (authed) { loadData(); loadVideos(); } }, [authed]);
-
-    // Realtime: refresh admin data when any admin table changes or local portfolio config changes
-    useRealtimeRefetch(
-        authed ? ['featured_projects', 'hidden_projects', 'skills', 'site_settings'] : [],
-        () => { setLiveTick(t => t + 1); loadData(); }
-    );
-
     useEffect(() => {
-        const handleConfigChanged = () => {
+        if (authed) {
             loadData();
-        };
-        window.addEventListener('portfolio-config-changed', handleConfigChanged);
-        return () => window.removeEventListener('portfolio-config-changed', handleConfigChanged);
-    }, []);
-
+            loadVideos();
+        }
+    }, [authed]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -283,43 +366,6 @@ const Admin = () => {
         clearAdminPassword();
         setAuthed(false);
     };
-
-    const toggleProject = async (id: number, repoName: string) => {
-        const currentlyHidden = hiddenIds.includes(id);
-        try {
-            const nextHidden = await toggleHiddenProjectDb(id, repoName, currentlyHidden, hiddenIds);
-            setHiddenIds(nextHidden);
-            toast({ title: currentlyHidden ? 'Now visible' : 'Hidden', description: formatRepoName(repoName) });
-        } catch (err) {
-            toast({ title: 'Save failed', description: (err as Error).message });
-        }
-    };
-
-    const bulkAction = async (action: "hideAll" | "showAll") => {
-        if (!confirm(`Are you sure you want to ${action === "hideAll" ? "hide" : "show"} ALL repositories?`)) return;
-        const repoMap: Record<number, string> = {};
-        repos.forEach(r => { repoMap[r.id] = r.name; });
-
-        if (action === "hideAll") {
-            const allIds = repos.map(r => r.id);
-            try {
-                const nextHidden = await setAllHiddenProjectsDb(allIds, repoMap);
-                setHiddenIds(nextHidden);
-                toast({ title: 'All hidden', description: `${allIds.length} repos` });
-            } catch (err) {
-                toast({ title: 'Save failed', description: (err as Error).message });
-            }
-        } else {
-            try {
-                const nextHidden = await setAllHiddenProjectsDb([], repoMap);
-                setHiddenIds(nextHidden);
-                toast({ title: 'All visible' });
-            } catch (err) {
-                toast({ title: 'Save failed', description: (err as Error).message });
-            }
-        }
-    };
-
 
     const addSkill = async (e: React.FormEvent, category: 'tech' | 'non-tech') => {
         e.preventDefault();
@@ -407,7 +453,7 @@ const Admin = () => {
 
     if (loading) return (
         <div className="min-h-screen bg-black flex items-center justify-center font-mono text-red-500 uppercase tracking-widest animate-pulse">
-            Loading Admin Data...
+            Loading Repositories & Admin Data...
         </div>
     );
 
@@ -415,8 +461,46 @@ const Admin = () => {
         <div className="relative min-h-screen bg-black text-white overflow-x-hidden">
             <CyberBackground />
             <TechNav />
+
+            {/* STICKY UNSAVED BAR */}
+            <AnimatePresence>
+                {hasUnsavedChanges && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -50 }}
+                        className="fixed top-16 left-0 right-0 z-50 bg-gradient-to-r from-red-950 via-neutral-900 to-red-950 border-y border-red-500/50 shadow-2xl px-4 py-3 backdrop-blur-xl"
+                    >
+                        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+                            <div className="flex items-center gap-2 text-yellow-400 font-mono text-xs">
+                                <AlertTriangle size={16} className="animate-pulse text-yellow-400" />
+                                <span className="font-bold uppercase tracking-wider">Unsaved Repository & Visibility Changes</span>
+                                <span className="hidden sm:inline opacity-70">· Click Save to apply and reload page</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={discardChanges}
+                                    disabled={saving}
+                                    className="flex items-center gap-1 px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest border border-white/20 hover:border-white text-white/80 hover:text-white transition-colors"
+                                >
+                                    <RotateCcw size={12} /> Discard
+                                </button>
+                                <button
+                                    onClick={handleSaveAndReload}
+                                    disabled={saving}
+                                    className="flex items-center gap-2 px-5 py-2 text-xs font-mono font-bold uppercase tracking-widest bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-600/30 transition-all rounded"
+                                >
+                                    <Save size={14} className={saving ? "animate-spin" : ""} />
+                                    {saving ? "SAVING & RELOADING..." : "💾 SAVE & RELOAD"}
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <main className="relative z-10">
-                <PageHero sectionNumber="06 / Admin" title="ADMIN PANEL" subtitle="System configuration and project visibility settings." />
+                <PageHero sectionNumber="06 / Admin" title="ADMIN PANEL" subtitle="System configuration and repository visibility controls." />
 
                 <div className="px-4 sm:px-6 pb-24">
                     <div className="max-w-7xl mx-auto flex flex-col gap-8">
@@ -428,9 +512,9 @@ const Admin = () => {
                                     <span className="text-[10px] font-mono uppercase tracking-widest text-red-500">Session Active</span>
                                 </div>
                                 <div className="flex items-center gap-2 border-l border-white/10 pl-4">
-                                    <Radio size={12} className="text-green-400 animate-pulse" />
-                                    <span className="text-[10px] font-mono uppercase tracking-widest text-green-400">Live · Realtime sync</span>
-                                    {liveTick > 0 && <span className="text-[9px] font-mono opacity-40">·{liveTick}</span>}
+                                    <span className="text-[10px] font-mono uppercase tracking-widest text-white/60">
+                                        {hasUnsavedChanges ? "⚠️ Modified (Unsaved)" : "✓ Synced with Storage"}
+                                    </span>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
@@ -441,7 +525,7 @@ const Admin = () => {
                                     <Upload size={11} /> Import
                                 </button>
                                 <input ref={importInputRef} type="file" accept="application/json" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) importConfig(f); e.currentTarget.value = ''; }} />
-                                <button onClick={loadData} className="flex items-center gap-1 px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest border border-white/10 hover:border-red-500 hover:text-red-500 transition-colors">
+                                <button onClick={() => loadData(true)} className="flex items-center gap-1 px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest border border-white/10 hover:border-red-500 hover:text-red-500 transition-colors">
                                     <RefreshCw size={11} /> Sync
                                 </button>
                                 <button onClick={logout} className="text-[10px] font-mono uppercase tracking-widest text-white/60 hover:text-red-500 transition-colors">
@@ -449,7 +533,6 @@ const Admin = () => {
                                 </button>
                             </div>
                         </div>
-
 
                         {/* Stats */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -472,28 +555,40 @@ const Admin = () => {
                             animate={{ opacity: 1, y: 0 }}
                             className="border border-white/10 bg-black/40 backdrop-blur-md p-6 md:p-8 flex flex-col gap-6"
                         >
-                            <div className="flex flex-wrap items-center justify-between gap-4">
+                            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-5">
                                 <div>
                                     <div className="flex items-center gap-3">
                                         <h2 className="text-xl md:text-2xl font-heading font-black uppercase text-red-500">GitHub Manager</h2>
                                         <span className="px-2.5 py-0.5 text-[10px] font-mono font-bold uppercase tracking-wider bg-red-500/10 text-red-400 border border-red-500/30 rounded">
-                                            {repos.length} Repositories
+                                            {repos.length} All Repositories
                                         </span>
                                     </div>
-                                    <p className="text-[10px] font-mono opacity-60 uppercase tracking-widest mt-1">Control repository visibility, featured slideshows, and ordering across the entire site.</p>
+                                    <p className="text-[10px] font-mono opacity-60 uppercase tracking-widest mt-1">
+                                        Choose your visible repos and featured projects, then click <strong>SAVE &amp; RELOAD</strong> to apply.
+                                    </p>
                                 </div>
-                                <div className="flex flex-wrap gap-2">
+                                <div className="flex flex-wrap items-center gap-2">
                                     <button 
                                         onClick={syncRepos} 
                                         disabled={syncingRepos}
                                         className="flex items-center gap-1.5 px-3 py-2 text-[9px] font-mono uppercase tracking-widest border border-white/10 hover:border-red-500 hover:text-red-400 disabled:opacity-50 transition-colors"
-                                        title="Force fetch all repositories from GitHub API"
+                                        title="Fetch all repositories fresh from GitHub API"
                                     >
                                         <RefreshCw size={11} className={syncingRepos ? "animate-spin text-red-500" : ""} />
                                         {syncingRepos ? "Syncing..." : "Sync GitHub"}
                                     </button>
-                                    <button onClick={() => bulkAction("showAll")} className="px-3 py-2 text-[9px] font-mono uppercase tracking-widest border border-white/10 hover:border-green-500 hover:text-green-500 transition-colors">Show All</button>
-                                    <button onClick={() => bulkAction("hideAll")} className="px-3 py-2 text-[9px] font-mono uppercase tracking-widest border border-white/10 hover:border-red-500 hover:text-red-500 transition-colors">Hide All</button>
+                                    <button onClick={() => bulkActionDraft("showAll")} className="px-3 py-2 text-[9px] font-mono uppercase tracking-widest border border-white/10 hover:border-green-500 hover:text-green-500 transition-colors">Show All</button>
+                                    <button onClick={() => bulkActionDraft("hideAll")} className="px-3 py-2 text-[9px] font-mono uppercase tracking-widest border border-white/10 hover:border-red-500 hover:text-red-500 transition-colors">Hide All</button>
+                                    
+                                    {/* Primary Save Button */}
+                                    <button
+                                        onClick={handleSaveAndReload}
+                                        disabled={saving}
+                                        className={`flex items-center gap-2 px-4 py-2 text-xs font-mono font-bold uppercase tracking-widest transition-all rounded ${hasUnsavedChanges ? 'bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-600/40 animate-pulse' : 'bg-white/10 hover:bg-white/20 text-white/70 hover:text-white'}`}
+                                    >
+                                        <Save size={13} className={saving ? "animate-spin" : ""} />
+                                        {saving ? "Saving..." : hasUnsavedChanges ? "💾 Save & Reload" : "✓ Saved"}
+                                    </button>
                                 </div>
                             </div>
 
@@ -542,8 +637,8 @@ const Admin = () => {
                                         <div key={f.id} className="flex items-center gap-2 py-1.5 px-2 bg-black/60 border border-white/10 rounded">
                                             <span className="text-yellow-400 font-mono text-[10px] font-bold w-4">{i + 1}</span>
                                             <span className="flex-1 text-xs font-heading uppercase tracking-tight truncate text-white">{formatRepoName(f.repo_name)}</span>
-                                            <button onClick={() => moveHomeFeatured(i, -1)} disabled={i === 0} className="p-1 border border-white/10 hover:border-yellow-500 hover:text-yellow-500 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"><ArrowUp size={10} /></button>
-                                            <button onClick={() => moveHomeFeatured(i, 1)} disabled={i === homeFeatured.length - 1} className="p-1 border border-white/10 hover:border-yellow-500 hover:text-yellow-500 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"><ArrowDown size={10} /></button>
+                                            <button onClick={() => moveHomeFeaturedDraft(i, -1)} disabled={i === 0} className="p-1 border border-white/10 hover:border-yellow-500 hover:text-yellow-500 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"><ArrowUp size={10} /></button>
+                                            <button onClick={() => moveHomeFeaturedDraft(i, 1)} disabled={i === homeFeatured.length - 1} className="p-1 border border-white/10 hover:border-yellow-500 hover:text-yellow-500 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"><ArrowDown size={10} /></button>
                                         </div>
                                     ))}
                                 </div>
@@ -560,8 +655,8 @@ const Admin = () => {
                                         <div key={f.id} className="flex items-center gap-2 py-1.5 px-2 bg-black/60 border border-white/10 rounded">
                                             <span className="text-red-400 font-mono text-[10px] font-bold w-4">{i + 1}</span>
                                             <span className="flex-1 text-xs font-heading uppercase tracking-tight truncate text-white">{formatRepoName(f.repo_name)}</span>
-                                            <button onClick={() => movePageFeatured(i, -1)} disabled={i === 0} className="p-1 border border-white/10 hover:border-red-500 hover:text-red-500 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"><ArrowUp size={10} /></button>
-                                            <button onClick={() => movePageFeatured(i, 1)} disabled={i === pageFeatured.length - 1} className="p-1 border border-white/10 hover:border-red-500 hover:text-red-500 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"><ArrowDown size={10} /></button>
+                                            <button onClick={() => movePageFeaturedDraft(i, -1)} disabled={i === 0} className="p-1 border border-white/10 hover:border-red-500 hover:text-red-500 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"><ArrowUp size={10} /></button>
+                                            <button onClick={() => movePageFeaturedDraft(i, 1)} disabled={i === pageFeatured.length - 1} className="p-1 border border-white/10 hover:border-red-500 hover:text-red-500 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"><ArrowDown size={10} /></button>
                                         </div>
                                     ))}
                                 </div>
@@ -589,18 +684,18 @@ const Admin = () => {
                                             </div>
                                             <div className="flex flex-col gap-1.5 pt-1">
                                                 <div className="flex gap-1">
-                                                    <button onClick={() => toggleProject(repo.id, repo.name)}
+                                                    <button onClick={() => toggleProjectDraft(repo.id)}
                                                         className={`flex-1 py-1.5 font-mono text-[9px] font-bold uppercase tracking-widest border transition-all rounded ${isHidden ? 'border-green-500 text-green-400 hover:bg-green-500 hover:text-black' : 'border-white/20 text-white/60 hover:border-red-500 hover:text-red-400'}`}>
-                                                        {isHidden ? 'Show' : 'Hide'}
+                                                        {isHidden ? 'Show (Draft)' : 'Hide (Draft)'}
                                                     </button>
                                                 </div>
                                                 {!isHidden && (
                                                     <div className="flex gap-1">
-                                                        <button onClick={() => toggleHomeFeatured(repo)}
+                                                        <button onClick={() => toggleHomeFeaturedDraft(repo)}
                                                             className={`flex-1 py-1.5 font-mono text-[8px] font-bold uppercase tracking-wider border transition-all rounded ${isHomeFeat ? 'border-yellow-400 text-yellow-400 bg-yellow-500/20' : 'border-white/10 text-white/60 hover:border-yellow-400 hover:text-yellow-400'}`}>
                                                             {isHomeFeat ? '★ Home (On)' : '★ Home (3)'}
                                                         </button>
-                                                        <button onClick={() => togglePageFeatured(repo)}
+                                                        <button onClick={() => togglePageFeaturedDraft(repo)}
                                                             className={`flex-1 py-1.5 font-mono text-[8px] font-bold uppercase tracking-wider border transition-all rounded ${isPageFeat ? 'border-red-400 text-red-400 bg-red-500/20' : 'border-white/10 text-white/60 hover:border-red-400 hover:text-red-400'}`}>
                                                             {isPageFeat ? '🚀 Page (On)' : '🚀 Page (5)'}
                                                         </button>
@@ -612,8 +707,8 @@ const Admin = () => {
                                 })}
                             </div>
 
-                            <div className="flex items-center justify-between pt-2 border-t border-white/5 text-[10px] font-mono opacity-50 uppercase tracking-widest">
-                                <span>Showing {filteredRepos.length} of {repos.length} Repositories</span>
+                            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/5 text-[10px] font-mono opacity-60 uppercase tracking-widest">
+                                <span>Showing {filteredRepos.length} of {repos.length} Total Repositories</span>
                                 <span>{hiddenIds.length} Hidden · {repos.length - hiddenIds.length} Visible</span>
                             </div>
                         </motion.section>
@@ -678,7 +773,6 @@ const Admin = () => {
                                         })}
                                     </div>
                                 </motion.section>
-
                             ))}
                         </div>
 
@@ -721,7 +815,6 @@ const Admin = () => {
                                 </div>
                             )}
                         </motion.section>
-
 
                         {/* Site Settings */}
                         <motion.section

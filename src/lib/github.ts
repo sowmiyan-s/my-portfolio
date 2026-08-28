@@ -150,7 +150,7 @@ export const fallbackRepos: GitHubRepo[] = [
   {
     id: 1189549319,
     name: "GUARD-RAG",
-    description: "GUARD-RAG is a RAG chatbot tool that runs as a Python package and operates completely offline.",
+    description: "GUARD-RAG is an offline-capable retrieval augmented generation AI system designed for security-critical environments.",
     html_url: "https://github.com/sowmiyan-s/GUARD-RAG",
     homepage: "https://pypi.org/project/guard-rag/",
     stargazers_count: 0,
@@ -161,7 +161,7 @@ export const fallbackRepos: GitHubRepo[] = [
   {
     id: 1103303342,
     name: "Health-Agent",
-    description: "Intelligent health diagnostics and insights agent application powered by AI and Streamlit.",
+    description: "Intelligent medical diagnosis and health prediction agent built with Streamlit and AI diagnostic models.",
     html_url: "https://github.com/sowmiyan-s/Health-Agent",
     homepage: "https://health-insights-agent.streamlit.app/",
     stargazers_count: 0,
@@ -183,7 +183,7 @@ export const fallbackRepos: GitHubRepo[] = [
   {
     id: 1028399658,
     name: "Java-Problem-Solutions",
-    description: "Java DSA problems solved and curated for competitive programming.",
+    description: "Comprehensive Java Data Structures and Algorithms solutions for competitive programming.",
     html_url: "https://github.com/sowmiyan-s/Java-Problem-Solutions",
     homepage: "",
     stargazers_count: 1,
@@ -205,7 +205,7 @@ export const fallbackRepos: GitHubRepo[] = [
   {
     id: 997826626,
     name: "Machine-Learning",
-    description: "Comprehensive repository with machine learning algorithms, notebooks, and learning materials.",
+    description: "Machine Learning foundation algorithms, model implementations, and practical notebooks.",
     html_url: "https://github.com/sowmiyan-s/Machine-Learning",
     homepage: "",
     stargazers_count: 0,
@@ -216,7 +216,7 @@ export const fallbackRepos: GitHubRepo[] = [
   {
     id: 912834842,
     name: "Makeup-Artist-Website",
-    description: "Elegant portfolio and booking website crafted for professional makeup artists.",
+    description: "Sleek, responsive client portfolio for makeup artistry and salon scheduling.",
     html_url: "https://github.com/sowmiyan-s/Makeup-Artist-Website",
     homepage: "",
     stargazers_count: 0,
@@ -227,10 +227,10 @@ export const fallbackRepos: GitHubRepo[] = [
   {
     id: 1090421149,
     name: "ML-WorkBench",
-    description: "ML Workbench is a powerful and intuitive Streamlit application designed to streamline machine learning workflows from data upload to model deployment.",
+    description: "ML Workbench is a powerful and intuitive Streamlit application designed to streamline machine learning workflows.",
     html_url: "https://github.com/sowmiyan-s/ML-WorkBench",
     homepage: "",
-    stargazers_count: 2,
+    stargazers_count: 0,
     language: "Python",
     updated_at: "2026-06-30T17:47:13Z",
     forks_count: 0
@@ -238,7 +238,7 @@ export const fallbackRepos: GitHubRepo[] = [
   {
     id: 1126718165,
     name: "Multi-Agent-Market-Researcher",
-    description: "A sophisticated financial and market research system powered by Mistral AI and CrewAI.",
+    "description": "A sophisticated financial and market research system powered by Mistral AI and CrewAI.",
     html_url: "https://github.com/sowmiyan-s/Multi-Agent-Market-Researcher",
     homepage: "",
     stargazers_count: 0,
@@ -249,7 +249,7 @@ export const fallbackRepos: GitHubRepo[] = [
   {
     id: 1288512579,
     name: "Natural-status-ml",
-    description: "Machine learning model predicting natural climate and ecological state indicators.",
+    description: "Natural language processing and sentiment analysis classification models.",
     html_url: "https://github.com/sowmiyan-s/Natural-status-ml",
     homepage: "",
     stargazers_count: 0,
@@ -260,7 +260,7 @@ export const fallbackRepos: GitHubRepo[] = [
   {
     id: 1323898538,
     name: "PPE-Detection-and-Management-System",
-    description: "AI-driven Personal Protective Equipment (PPE) detection and safety compliance dashboard.",
+    description: "Industrial safety compliance computer vision pipeline for personal protective equipment detection.",
     html_url: "https://github.com/sowmiyan-s/PPE-Detection-and-Management-System",
     homepage: "",
     stargazers_count: 0,
@@ -271,7 +271,7 @@ export const fallbackRepos: GitHubRepo[] = [
   {
     id: 1045689509,
     name: "Python-Problems-Solutions",
-    description: "Curated collection of Python DSA algorithms and interview problem solutions.",
+    description: "Python problem-solving patterns, data structures, and algorithmic solutions.",
     html_url: "https://github.com/sowmiyan-s/Python-Problems-Solutions",
     homepage: "",
     stargazers_count: 0,
@@ -282,7 +282,7 @@ export const fallbackRepos: GitHubRepo[] = [
   {
     id: 1342524820,
     name: "resume-radiance",
-    description: "Modern AI-enhanced resume builder and portfolio transformer.",
+    description: "Modern ATS-optimized resume builder and verification platform.",
     html_url: "https://github.com/sowmiyan-s/resume-radiance",
     homepage: "https://vsbcetc-resume.vercel.app",
     stargazers_count: 1,
@@ -304,7 +304,7 @@ export const fallbackRepos: GitHubRepo[] = [
   {
     id: 1318362106,
     name: "sowmiyan-s",
-    description: "Special GitHub configuration & profile repository for sowmiyan-s.",
+    description: "Specialized GitHub profile repository & automation configuration.",
     html_url: "https://github.com/sowmiyan-s/sowmiyan-s",
     homepage: "",
     stargazers_count: 0,
@@ -315,29 +315,18 @@ export const fallbackRepos: GitHubRepo[] = [
   {
     id: 1190847541,
     name: "sowmiyan-s-portfolio",
-    description: "A personalized cyber-themed portfolio website showcasing AI projects, developer skills, and content creation.",
+    description: "Official modern full-stack developer portfolio showcasing projects, interactive 3D elements, and achievements.",
     html_url: "https://github.com/sowmiyan-s/sowmiyan-s-portfolio",
     homepage: "https://sowmiyan-s.vercel.app",
-    stargazers_count: 1,
-    language: "TypeScript",
-    updated_at: "2026-08-26T09:51:15Z",
-    forks_count: 1
-  },
-  {
-    id: 1347145979,
-    name: "sowmiyan-s.github.io",
-    description: "GitHub Pages personal root site deployment.",
-    html_url: "https://github.com/sowmiyan-s/sowmiyan-s.github.io",
-    homepage: "",
     stargazers_count: 0,
-    language: "HTML",
-    updated_at: "2026-08-26T09:33:23Z",
-    forks_count: 0
+    language: "TypeScript",
+    updated_at: "2026-08-27T16:53:54Z",
+    forks_count: 1
   },
   {
     id: 1235837149,
     name: "sri-mariamman-tractor-center",
-    description: "Modern 3D commercial website built with advanced 3D interactive graphics.",
+    description: "Modern 3D website built with Three.js and contemporary web technologies.",
     html_url: "https://github.com/sowmiyan-s/sri-mariamman-tractor-center",
     homepage: "https://sri-mariamman-tractor-center.vercel.app",
     stargazers_count: 0,
@@ -348,7 +337,7 @@ export const fallbackRepos: GitHubRepo[] = [
   {
     id: 1027272885,
     name: "system-design-primer",
-    description: "Comprehensive system design patterns, architectures, and scalable distributed system blueprints.",
+    description: "System design architecture study resources and scalability case studies.",
     html_url: "https://github.com/sowmiyan-s/system-design-primer",
     homepage: "",
     stargazers_count: 1,
@@ -357,9 +346,9 @@ export const fallbackRepos: GitHubRepo[] = [
     forks_count: 0
   },
   {
-    id: 1144379845,
+    "id": 1144379845,
     name: "vyuga26-website",
-    description: "A comprehensive, production-ready management system for event registrations, real-time attendance tracking and advanced data reporting.",
+    description: "Production-ready management system handling registrations, live attendance tracking, and reporting.",
     html_url: "https://github.com/sowmiyan-s/vyuga26-website",
     homepage: "https://www.vyuga.net.in/",
     stargazers_count: 0,
@@ -370,7 +359,7 @@ export const fallbackRepos: GitHubRepo[] = [
   {
     id: 1228673102,
     name: "We-Share",
-    description: "We Share is an open-source desktop app for instant peer-to-peer file transfers with or without a Wi-Fi router.",
+    description: "Open-source desktop app for instant local peer-to-peer file transfers.",
     html_url: "https://github.com/sowmiyan-s/We-Share",
     homepage: "https://we-share-app.vercel.app",
     stargazers_count: 0,
@@ -385,11 +374,15 @@ function mergeRepoLists(primary: GitHubRepo[], secondary: GitHubRepo[]): GitHubR
   const map = new Map<string, GitHubRepo>();
   // Add secondary (fallback/cached) first
   for (const r of secondary) {
-    map.set(r.name.toLowerCase(), r);
+    if (r && r.name) {
+      map.set(r.name.toLowerCase(), r);
+    }
   }
   // Primary (fresh fetch or cached) overwrites
   for (const r of primary) {
-    map.set(r.name.toLowerCase(), r);
+    if (r && r.name) {
+      map.set(r.name.toLowerCase(), r);
+    }
   }
   return Array.from(map.values()).sort((a, b) => 
     new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
@@ -412,30 +405,51 @@ export const fetchRepos = async (forceRefresh = false): Promise<GitHubRepo[]> =>
     }
   } catch {}
 
-  // If cached data exists with a good number of repos and not force refreshing, we can return merged cache
   const mergedFallback = mergeRepoLists(cached, fallbackRepos);
 
+  // If we already have a rich cached list and forceRefresh is false, return it immediately
+  if (!forceRefresh && cached.length >= fallbackRepos.length) {
+    return mergedFallback;
+  }
+
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 7000);
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
 
   try {
-    const response = await fetch(`${API_BASE}/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=100&type=all`, {
-      signal: controller.signal,
-      headers: {
-        'Accept': 'application/vnd.github.v3+json',
-      }
-    });
-    clearTimeout(timeoutId);
+    const allFetched: GitHubRepo[] = [];
+    let page = 1;
+    let keepGoing = true;
 
-    if (!response.ok) {
-      console.warn(`GitHub API Notice: ${response.status}. Using comprehensive fallback dataset.`);
-      return mergedFallback;
+    while (keepGoing && page <= 5) {
+      const response = await fetch(`${API_BASE}/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=100&page=${page}&type=all`, {
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/vnd.github.v3+json',
+        }
+      });
+
+      if (!response.ok) {
+        keepGoing = false;
+        break;
+      }
+
+      const batch: GitHubRepo[] = await response.json();
+      if (Array.isArray(batch) && batch.length > 0) {
+        allFetched.push(...batch);
+        if (batch.length < 100) {
+          keepGoing = false;
+        } else {
+          page++;
+        }
+      } else {
+        keepGoing = false;
+      }
     }
 
-    const data: GitHubRepo[] = await response.json();
-    if (Array.isArray(data) && data.length > 0) {
-      // Merge live data with all fallback repos to ensure nothing is missed
-      const fullList = mergeRepoLists(data, fallbackRepos);
+    clearTimeout(timeoutId);
+
+    if (allFetched.length > 0) {
+      const fullList = mergeRepoLists(allFetched, fallbackRepos);
       try {
         localStorage.setItem(CACHE_KEY, JSON.stringify(fullList));
       } catch {}
@@ -443,7 +457,7 @@ export const fetchRepos = async (forceRefresh = false): Promise<GitHubRepo[]> =>
     }
   } catch (error) {
     clearTimeout(timeoutId);
-    console.warn("GitHub fetch error, fallback activated:", (error as Error).message);
+    console.warn("GitHub fetch notice:", (error as Error).message);
   }
 
   return mergedFallback;

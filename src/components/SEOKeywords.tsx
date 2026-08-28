@@ -15,7 +15,8 @@ const SEOKeywords: React.FC = () => (
         Sowmiyan S is an AI Engineer and Full-Stack Developer specializing in autonomous agents, multi-agent frameworks, and high-performance web systems.
       </p>
       <p>
-        Direct Contact: <span itemProp="email">sowmisowmiyan58@gmail.com</span> | Telephone: <span itemProp="telephone">+919042561295</span>.
+        Direct Contact: <a href="mailto:sowmisowmiyan58@gmail.com" itemProp="email">sowmisowmiyan58@gmail.com</a> | 
+        Telephone: <a href="tel:+919042561295" itemProp="telephone">+91 9042561295</a> (<span itemProp="telephone">9042561295</span> / <span>+91 90425 61295</span>).
       </p>
       <p>
         Location: <span itemProp="address" itemScope itemType="https://schema.org/PostalAddress">
