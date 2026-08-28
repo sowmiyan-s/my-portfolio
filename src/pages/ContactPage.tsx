@@ -50,58 +50,90 @@ const ContactPage = () => {
         setIsSubmitting(true);
         setSubmitStatus('idle');
 
+        const payload = {
+            "Sender Name": name.trim(),
+            "Sender Email": email.trim(),
+            "Inquiry Type": category,
+            "Message": message.trim(),
+            _subject: `[Portfolio Inquiry] ${category} from ${name.trim()}`,
+            _replyto: email.trim(),
+            _template: 'table',
+            _captcha: 'false',
+            _autoresponse: `Hi ${name.trim()},\n\nThank you for reaching out through my portfolio. I have received your message regarding "${category}" and will reply to you directly within 24 hours.\n\nBest regards,\nSowmiyan S\nAI Engineer & Full-Stack Developer\nhttps://www.sowmiyan.me`
+        };
+
+        let delivered = false;
+
+        // Provider 1: FormSubmit AJAX
         try {
-            const endpoint = 'https://formsubmit.co/ajax/sowmisowmiyan58@gmail.com';
-            const response = await fetch(endpoint, {
+            const res = await fetch('https://formsubmit.co/ajax/sowmisowmiyan58@gmail.com', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify({
-                    "Sender Name": name.trim(),
-                    "Sender Email": email.trim(),
-                    "Inquiry Type": category,
-                    "Message": message.trim(),
-
-                    _subject: `[Portfolio Inquiry] ${category} from ${name.trim()}`,
-                    _replyto: email.trim(),
-                    _template: 'table',
-                    _captcha: 'false',
-                    _autoresponse: `Hi ${name.trim()},\n\nThank you for reaching out through my portfolio. I have received your message regarding "${category}" and will reply to you directly within 24 hours.\n\nBest regards,\nSowmiyan S\nAI Engineer & Full-Stack Developer\nhttps://www.sowmiyan.me`
-                })
+                body: JSON.stringify(payload)
             });
-
-            if (response.ok) {
-                setSubmitStatus('success');
-                setName('');
-                setEmail('');
-                setMessage('');
-                toast({
-                    title: "Message Delivered",
-                    description: "Thank you! Your note has been delivered to sowmisowmiyan58@gmail.com."
-                });
-            } else {
-                throw new Error("Submission failed");
+            if (res.ok) {
+                delivered = true;
             }
-        } catch (err) {
-            console.warn("Form submit fallback triggered:", err);
+        } catch (e) {
+            console.warn("FormSubmit endpoint notice:", e);
+        }
+
+        // Provider 2: Web3Forms fallback if primary endpoint had issues
+        if (!delivered) {
+            try {
+                const res2 = await fetch('https://api.web3forms.com/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        access_key: "099a224d-5878-43d9-959c-851532f6a6dc", // public contact key fallback
+                        name: name.trim(),
+                        email: email.trim(),
+                        subject: `[Portfolio Contact] ${category} - ${name.trim()}`,
+                        message: `Inquiry Type: ${category}\n\n${message.trim()}`
+                    })
+                });
+                if (res2.ok) {
+                    delivered = true;
+                }
+            } catch (e2) {
+                console.warn("Web3Forms fallback notice:", e2);
+            }
+        }
+
+        setIsSubmitting(false);
+
+        if (delivered) {
+            setSubmitStatus('success');
+            toast({
+                title: "Message Delivered Successfully!",
+                description: "Your inquiry has been sent to sowmisowmiyan58@gmail.com. I will reply within 24 hours."
+            });
+        } else {
             setSubmitStatus('error');
             toast({
-                title: "Unable to Send Automatically",
-                description: "Click below to send via your email client directly.",
+                title: "Direct Client Routing Available",
+                description: "You can send directly via your email client or WhatsApp below.",
                 variant: "destructive"
             });
-        } finally {
-            setIsSubmitting(false);
         }
+    };
+
+    const getWhatsAppUrl = () => {
+        const text = `Hi Sowmiyan, my name is ${name || 'there'}.\n\nInquiry Type: ${category}\nEmail: ${email || 'N/A'}\n\nMessage: ${message || 'I would like to discuss an opportunity with you.'}`;
+        return `https://wa.me/919042561295?text=${encodeURIComponent(text)}`;
     };
 
     const handleMailtoFallback = () => {
         const mailtoUrl = `mailto:sowmisowmiyan58@gmail.com?subject=${encodeURIComponent(
             `Inquiry: ${category} - ${name || 'Prospective Partner'}`
         )}&body=${encodeURIComponent(
-            `Hi Sowmiyan,\n\nMy name is ${name}.\nType: ${category}\n\n${message}`
+            `Hi Sowmiyan,\n\nMy name is ${name}.\nType: ${category}\nEmail: ${email}\n\n${message}`
         )}`;
         window.location.href = mailtoUrl;
     };
@@ -370,8 +402,19 @@ const ContactPage = () => {
                                     )}
                                 </AnimatePresence>
 
-                                {/* Submit Button */}
-                                <div className="flex items-center justify-end pt-2 border-t border-white/10">
+                                {/* Submit & Fast Connect Row */}
+                                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-white/10">
+                                    <a
+                                        href={getWhatsAppUrl()}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-mono text-xs uppercase tracking-wider transition-all"
+                                        title="Chat directly on WhatsApp"
+                                    >
+                                        <Phone size={14} />
+                                        <span>Chat on WhatsApp</span>
+                                    </a>
+
                                     <button
                                         type="submit"
                                         disabled={isSubmitting}

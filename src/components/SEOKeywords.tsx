@@ -12,7 +12,7 @@ const SEOKeywords: React.FC = () => (
     
     <div>
       <p>
-        Sowmiyan S is an AI Engineer and Full-Stack Developer specializing in autonomous agents, multi-agent frameworks, and high-performance web systems.
+        Sowmiyan S is an AI Engineer &amp; Full-Stack Systems Developer, Founder of Bound By Code. Specializing in Multi-Agent AI Frameworks (CrewAI, LangChain), Autonomous LLM Systems, Python, and Production React Platforms.
       </p>
       <p>
         Direct Contact: <a href="mailto:sowmisowmiyan58@gmail.com" itemProp="email">sowmisowmiyan58@gmail.com</a> | 
