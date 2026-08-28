@@ -246,14 +246,7 @@ async function generatePreview() {
     <div class="vignette"></div>
 
     <div class="content">
-      <div class="top-nav">
-        <div class="logo-pill" style="padding:6px;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;">
-          <svg viewBox="0 0 512 512" width="26" height="26">
-            <circle cx="256" cy="256" r="256" fill="#050507" />
-            <circle cx="256" cy="256" r="242" fill="none" stroke="#FF2E2E" stroke-width="14" />
-            <path d="M 370 175 C 370 115 322 75 256 75 C 188 75 142 115 142 175 C 142 232 182 258 248 278 L 274 286 C 328 302 358 325 358 368 C 358 418 314 445 256 445 C 188 445 144 408 138 348 L 204 348 C 208 378 226 394 256 394 C 284 394 300 380 300 360 C 300 326 272 308 214 290 L 188 282 C 138 266 90 238 90 178 C 90 118 140 52 256 52 C 358 52 418 112 422 175 Z" fill="#FF2E2E" />
-          </svg>
-        </div>
+      <div class="top-nav" style="justify-content:center;gap:24px;">
         <div class="nav-links">
           <span class="nav-item active">Home</span>
           <span class="nav-item">Projects</span>
