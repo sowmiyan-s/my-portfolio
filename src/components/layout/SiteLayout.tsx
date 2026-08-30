@@ -35,9 +35,9 @@ const SiteLayout = ({ children }: { children: ReactNode }) => {
 
 
 
-      <div className="relative z-10 w-full min-h-screen">
+      <main id="main-content" className="relative z-10 w-full min-h-screen">
         {children}
-      </div>
+      </main>
     </>
   );
 };

@@ -1,0 +1,24 @@
+# Sowmiyan S — Portfolio
+> Official portfolio and knowledge index for Sowmiyan S, AI Engineer and Full-Stack Systems Developer.
+
+## Overview
+- **Name:** Sowmiyan S
+- **Title:** AI Engineer & Full-Stack Systems Developer
+- **Organization:** Bound By Code (Founder)
+- **Location:** Namakkal, Tamil Nadu, India
+- **Email:** sowmisowmiyan58@gmail.com
+- **Phone:** +91 9042561295
+- **Website:** https://www.sowmiyan.me/
+
+## Core Competencies & Skills
+- **Multi-Agent Systems & AI:** CrewAI, LangChain, LangGraph, Autonomous LLM Agents, Prompt Engineering, RAG Pipelines
+- **Frontend & UI/UX:** React, Next.js, TypeScript, Tailwind CSS, Three.js, Framer Motion
+- **Backend & Systems:** Python, FastAPI, Node.js, PostgreSQL, Supabase, Redis, Docker, AWS
+
+## Key Links & Projects
+- **Projects:** https://www.sowmiyan.me/projects
+- **Achievements:** https://www.sowmiyan.me/achievements
+- **Contact:** https://www.sowmiyan.me/contact
+- **GitHub:** https://github.com/sowmiyan-s
+- **LinkedIn:** https://linkedin.com/in/sowmiyan-s
+- **Medium Articles:** https://medium.com/@sowmiyan_s_
