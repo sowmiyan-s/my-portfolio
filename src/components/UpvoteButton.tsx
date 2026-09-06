@@ -160,13 +160,28 @@ const UpvoteButton = () => {
 
     window.addEventListener("site-vote-changed" as any, handleVoteChange);
     window.addEventListener("storage", refresh);
+
+    // Supabase Realtime broadcast channel — syncs count across ALL users instantly
+    const broadcastChannel = supabase.channel('vote-sync');
+    broadcastChannel
+      .on('broadcast', { event: 'vote-update' }, (payload: any) => {
+        if (payload?.payload?.count != null) {
+          const newCount = payload.payload.count;
+          setCount(newCount);
+          localStorage.setItem(LS_COUNT_KEY, String(newCount));
+        }
+      })
+      .subscribe();
+
     return () => {
       clearInterval(interval);
       window.removeEventListener("site-vote-changed" as any, handleVoteChange);
       window.removeEventListener("storage", refresh);
+      supabase.removeChannel(broadcastChannel);
     };
   }, [refresh, checkCooldownStatus]);
 
+  // Also subscribe to postgres_changes as a fallback for when broadcast misses
   useRealtimeRefetch(["site_votes"], refresh);
 
   const toggle = async () => {
@@ -269,6 +284,12 @@ const UpvoteButton = () => {
           window.dispatchEvent(
             new CustomEvent("site-vote-changed", { detail: { count: data.count, voted: true } })
           );
+          // Broadcast to all other connected users
+          supabase.channel('vote-sync').send({
+            type: 'broadcast',
+            event: 'vote-update',
+            payload: { count: data.count },
+          }).catch(() => {});
         }
       } else {
         // Edge Function returned no count — re-read the aggregate count
@@ -279,6 +300,12 @@ const UpvoteButton = () => {
           window.dispatchEvent(
             new CustomEvent("site-vote-changed", { detail: { count: remoteState.count, voted: true } })
           );
+          // Broadcast to all other connected users
+          supabase.channel('vote-sync').send({
+            type: 'broadcast',
+            event: 'vote-update',
+            payload: { count: remoteState.count },
+          }).catch(() => {});
         }
       }
     } catch (err) {

@@ -21,13 +21,33 @@ const Hero = () => {
 
     const y = useTransform(scrollYProgress, [0, 1], [0, 100]);
     const opacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
+    const bgOpacity = useTransform(scrollYProgress, [0, 0.85, 1], [1, 0.4, 0]);
+    const bgY = useTransform(scrollYProgress, [0, 1], [0, 50]);
+    const bgScale = useTransform(scrollYProgress, [0, 1], [1, 1.04]);
 
     return (
         <section id="home" ref={containerRef} className="relative min-h-[90vh] md:min-h-screen flex items-center justify-start pt-24 md:pt-28 pb-12 sm:pb-16 px-4 sm:px-8 md:px-12 overflow-hidden z-10 w-full bg-transparent">
-            {/* Subtle Grid Lines */}
-            <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-                <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:32px_32px]" />
-            </div>
+            {/* Hero-Only Photo: Brought to front with full clarity, framed on right, fading out on scroll */}
+            <motion.div 
+                className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none"
+                style={isMobile ? undefined : { opacity: bgOpacity }}
+            >
+                <motion.img
+                    src="/bg-image.png"
+                    alt="Sowmiyan S Hero"
+                    aria-hidden="true"
+                    decoding="async"
+                    style={isMobile ? undefined : { y: bgY, scale: bgScale }}
+                    className="w-full h-full object-cover object-[70%_center] md:object-right opacity-100 select-none"
+                />
+
+                {/* Soft left gradient to ensure text contrast while keeping photo prominent */}
+                <div className="absolute inset-y-0 left-0 w-full md:w-3/5 bg-gradient-to-r from-black/85 via-black/40 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-black/20 md:hidden pointer-events-none" />
+
+                {/* Seamless Bottom Fade to merge cleanly with the scrolling sections */}
+                <div className="absolute bottom-0 inset-x-0 h-32 md:h-44 bg-gradient-to-t from-[#070709] via-[#070709]/75 to-transparent pointer-events-none" />
+            </motion.div>
             
             <motion.div 
                 style={isMobile ? undefined : { y, opacity }} 

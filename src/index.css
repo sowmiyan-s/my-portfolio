@@ -69,8 +69,12 @@
   }
 
   /* Custom cursor only on precise pointer (desktop > 1024px). Mobile/touch keeps native cursor. */
+  html, body {
+    cursor: url('/cursor/frame_0_64x64.png') 10 3, auto;
+  }
+
   @media (hover: hover) and (pointer: fine) and (min-width: 1025px) {
-    * {
+    *, *::before, *::after, html, body {
       cursor: none !important;
     }
   }
@@ -223,9 +227,9 @@
   pointer-events: none;
 }
 
-/* Show standard browser mouse cursor inside all modals, decrypters, and prose blocks */
-[data-lenis-prevent="true"], [data-lenis-prevent="true"] *, .prose, .prose *, button, a, [role="button"] {
-  cursor: auto !important;
+/* Standard text selection inside inputs and textareas */
+input, textarea {
+  cursor: text;
 }
 
 /* Multicolor Theme overrides for Tailwind Red classes */
@@ -671,4 +675,160 @@
   pointer-events: none;
 }
 
+/* ══════════════════════════════════════════════
+   Skills Section — Bento Card Layout
+   ══════════════════════════════════════════════ */
+
+/* ─── Bento Grid ─── */
+.bento-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+@media (min-width: 640px) {
+  .bento-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .bento-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+}
+
+/* Hero card spans 2 cols on tablet+ */
+@media (min-width: 640px) {
+  .bento-card-hero {
+    grid-column: span 2;
+  }
+}
+
+/* ─── Bento Card ─── */
+.bento-card {
+  --mouse-x: 50%;
+  --mouse-y: 50%;
+  position: relative;
+  padding: 22px 20px;
+  border-radius: 16px;
+  background: rgba(12, 12, 14, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  transition: border-color 0.35s ease, box-shadow 0.35s ease, transform 0.3s ease;
+  cursor: default;
+}
+
+.bento-card:hover {
+  background: rgba(16, 16, 20, 0.96);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.06);
+  transform: translateY(-2px);
+}
+
+/* Cursor-following radial spotlight */
+.bento-card-spotlight {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  background: radial-gradient(
+    500px circle at var(--mouse-x) var(--mouse-y),
+    var(--card-glow, rgba(255, 255, 255, 0.06)),
+    transparent 45%
+  );
+  z-index: 0;
+}
+
+.bento-card:hover .bento-card-spotlight {
+  opacity: 1;
+}
+
+/* Top accent edge line */
+.bento-card-accent-edge {
+  position: absolute;
+  top: 0;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  opacity: 0.7;
+  border-radius: 0 0 4px 4px;
+  z-index: 1;
+  transition: opacity 0.3s ease, left 0.4s ease, right 0.4s ease;
+}
+
+.bento-card:hover .bento-card-accent-edge {
+  opacity: 1;
+  left: 10%;
+  right: 10%;
+}
+
+/* All card content above spotlight */
+.bento-card > *:not(.bento-card-spotlight):not(.bento-card-accent-edge) {
+  position: relative;
+  z-index: 2;
+}
+
+/* ─── Skill Chip ─── */
+.bento-skill-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 6px 6px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  cursor: default;
+  transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.bento-skill-chip:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Icon box inside chip */
+.bento-skill-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+  transition: background-color 0.25s ease;
+}
+
+.bento-skill-chip:hover .bento-skill-icon-box {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* ─── Mobile ─── */
+@media (max-width: 639px) {
+  .bento-card {
+    padding: 18px 16px;
+    border-radius: 14px;
+  }
+
+  .bento-skill-chip {
+    padding: 5px 8px 5px 5px;
+    gap: 6px;
+  }
+
+  .bento-skill-icon-box {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+  }
+}
 

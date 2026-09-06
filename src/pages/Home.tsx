@@ -11,13 +11,15 @@ import GridScan from "@/components/GridScan";
 import SEOKeywords from "@/components/SEOKeywords";
 import SEO from "@/components/SEO";
 import MarqueeSection from "@/components/MarqueeSection";
+import CyberGridBackground from "@/components/CyberGridBackground";
 import { useThemeColors } from "@/lib/useThemeColors";
 
 const Home = () => {
-    const { primary } = useThemeColors();
+    const { primary, rgbaPrimary } = useThemeColors();
 
     return (
         <div className="relative min-h-screen bg-transparent text-white selection:bg-red-600 selection:text-white overflow-x-hidden">
+            <CyberGridBackground />
             <SEO 
                 title="Sowmiyan S — AI Engineer & Full Stack Systems Developer"
                 description="Official portfolio of Sowmiyan S. Autonomous AI agents, multi-agent frameworks, production full-stack systems, research publications, and open-source software."
@@ -33,18 +35,21 @@ const Home = () => {
 
                 <MarqueeSection />
 
+                {/* Skills Section */}
                 <div className="relative w-full z-20">
                     <SkillsSection />
                 </div>
 
                 <MarqueeSection />
 
+                {/* Blog Section */}
                 <div className="relative w-full z-30">
                     <BlogSection />
                 </div>
 
                 <MarqueeSection />
 
+                {/* Popular Projects Section */}
                 <div id="popular-projects-slider" className="relative bg-transparent w-full z-40">
                     <PopularProjectsSlider />
                 </div>
@@ -74,10 +79,12 @@ const Home = () => {
 
                 <MarqueeSection />
 
+                {/* Hire Me Section */}
                 <div className="relative w-full z-[60] bg-transparent">
                     <HireMeSection />
                 </div>
 
+                {/* Footer */}
                 <div className="relative z-[70] bg-black w-full">
                     <Footer />
                 </div>

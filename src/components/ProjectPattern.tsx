@@ -8,12 +8,6 @@ const ProjectPattern = ({ children }: { children?: React.ReactNode }) => {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-[#0a0a0a]">
-      {/* Portfolio Background Image (Visible) */}
-      <div 
-        className="fixed inset-0 z-0 bg-cover bg-center pointer-events-none opacity-60"
-        style={{ backgroundImage: `url('/bg-image.png')` }}
-      />
-
       {/* React Bits DotField Interactive Overlay */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <DotField 
