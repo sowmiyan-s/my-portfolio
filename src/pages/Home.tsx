@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import Hero from "@/components/Hero";
 import TechNav from "@/components/TechNav";
 import Footer from "@/components/Footer";
@@ -7,12 +7,13 @@ import SkillsSection from "@/components/SkillsSection";
 import HireMeSection from "@/components/HireMeSection";
 import ContentCreationSection from "@/components/ContentCreationSection";
 import PopularProjectsSlider from "@/components/PopularProjectsSlider";
-import GridScan from "@/components/GridScan";
 import SEOKeywords from "@/components/SEOKeywords";
 import SEO from "@/components/SEO";
 import MarqueeSection from "@/components/MarqueeSection";
 import CyberGridBackground from "@/components/CyberGridBackground";
 import { useThemeColors } from "@/lib/useThemeColors";
+
+const GridScan = lazy(() => import("@/components/GridScan"));
 
 const Home = () => {
     const { primary, rgbaPrimary } = useThemeColors();
@@ -59,18 +60,20 @@ const Home = () => {
                 {/* Bound By Code Section with React Bits GridScan Background */}
                 <div className="relative w-full overflow-hidden bg-[#0a0a0a]/80 z-50 py-10 md:py-16">
                     <div className="absolute inset-0 z-0 pointer-events-none opacity-70">
-                        <GridScan
-                            sensitivity={0.55}
-                            lineThickness={1}
-                            linesColor="#2F293A"
-                            gridScale={0.1}
-                            scanColor={primary || "#FF0000"}
-                            scanOpacity={0.5}
-                            enablePost
-                            bloomIntensity={0.6}
-                            chromaticAberration={0.002}
-                            noiseIntensity={0.01}
-                        />
+                        <Suspense fallback={null}>
+                            <GridScan
+                                sensitivity={0.55}
+                                lineThickness={1}
+                                linesColor="#2F293A"
+                                gridScale={0.1}
+                                scanColor={primary || "#FF0000"}
+                                scanOpacity={0.5}
+                                enablePost
+                                bloomIntensity={0.6}
+                                chromaticAberration={0.002}
+                                noiseIntensity={0.01}
+                            />
+                        </Suspense>
                     </div>
                     <div className="relative z-10 flex items-center justify-center w-full">
                         <ContentCreationSection />

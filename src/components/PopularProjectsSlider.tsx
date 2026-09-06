@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, Suspense, lazy } from 'react';
 import { motion } from 'framer-motion';
 import { fetchRepos, GitHubRepo } from '@/lib/github';
 import { fetchHiddenProjectIds, fetchHomeFeaturedProjects } from '@/lib/projectSettings';
@@ -6,7 +6,8 @@ import { formatRepoName } from '@/lib/formatRepo';
 import { useNavigate } from 'react-router-dom';
 import { useRealtimeRefetch } from '@/hooks/useRealtimeRefetch';
 import { Github, Star } from 'lucide-react';
-import Galaxy from './Galaxy';
+
+const Galaxy = lazy(() => import('./Galaxy'));
 
 const socialImg = (repo: string) =>
     `https://opengraph.githubassets.com/1/sowmiyan-s/${repo}`;
@@ -78,17 +79,19 @@ const PopularProjectsSlider = () => {
             {/* Starfield Background Pattern (Desktop only for 60fps mobile performance) */}
             {!isMobile && (
                 <div className="absolute inset-0 z-0 pointer-events-none opacity-25">
-                    <Galaxy 
-                        transparent={true}
-                        mouseRepulsion={false}
-                        mouseInteraction={false}
-                        density={0.8}
-                        glowIntensity={0.2}
-                        saturation={0.5}
-                        hueShift={350}
-                        starSpeed={0.2}
-                        twinkleIntensity={0.2}
-                    />
+                    <Suspense fallback={null}>
+                        <Galaxy 
+                            transparent={true}
+                            mouseRepulsion={false}
+                            mouseInteraction={false}
+                            density={0.8}
+                            glowIntensity={0.2}
+                            saturation={0.5}
+                            hueShift={350}
+                            starSpeed={0.2}
+                            twinkleIntensity={0.2}
+                        />
+                    </Suspense>
                 </div>
             )}
 
