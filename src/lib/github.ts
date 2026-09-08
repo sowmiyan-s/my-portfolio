@@ -366,6 +366,39 @@ export const fallbackRepos: GitHubRepo[] = [
     language: "C#",
     updated_at: "2026-07-30T18:39:52Z",
     forks_count: 0
+  },
+  {
+    id: 1342524820,
+    name: "Bulk-Resume-Analyzer",
+    description: "AI-powered bulk resume analysis and candidate screening platform.",
+    html_url: "https://github.com/sowmiyan-s/Bulk-Resume-Analyzer",
+    homepage: "https://vsbcetc-resume.vercel.app",
+    stargazers_count: 1,
+    language: "TypeScript",
+    updated_at: "2026-09-07T12:29:09Z",
+    forks_count: 0
+  },
+  {
+    id: 1358075738,
+    name: "Bus-pass",
+    description: "A digital bus ticketing application helps conductors issue tickets fast and lets managers track everything from an office.",
+    html_url: "https://github.com/sowmiyan-s/Bus-pass",
+    homepage: "",
+    stargazers_count: 1,
+    language: "Kotlin",
+    updated_at: "2026-09-07T03:58:02Z",
+    forks_count: 0
+  },
+  {
+    id: 1332248122,
+    name: "data-canvas-pro",
+    description: "Interactive data visualization and workflow canvas platform.",
+    html_url: "https://github.com/sowmiyan-s/data-canvas-pro",
+    homepage: "",
+    stargazers_count: 0,
+    language: "TypeScript",
+    updated_at: "2026-08-28T18:42:36Z",
+    forks_count: 0
   }
 ];
 

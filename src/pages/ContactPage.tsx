@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUpRight, Check, Copy, Send, Loader2, Mail, Phone, MapPin, Github, Linkedin, FileText, Sparkles, MessageSquare, User } from 'lucide-react';
 import TechNav from '@/components/TechNav';
 import Footer from '@/components/Footer';
-import ProjectPattern from '@/components/ProjectPattern';
+import Ferrofluid from '@/components/Ferrofluid';
 import SEOKeywords from '@/components/SEOKeywords';
 import SEO from '@/components/SEO';
 import { toast } from '@/hooks/use-toast';
@@ -147,10 +147,34 @@ const ContactPage = () => {
             />
             <SEOKeywords />
 
-            <ProjectPattern>
+            {/* Ferrofluid Ambient Crimson Background */}
+            <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden opacity-60 sm:opacity-75">
+                <Ferrofluid
+                    colors={['#ff1e1e', '#dc2626', '#b91c1c', '#ef4444', '#7f1d1d']}
+                    speed={0.4}
+                    scale={1.3}
+                    turbulence={1.0}
+                    fluidity={0.12}
+                    rimWidth={0.22}
+                    sharpness={2.8}
+                    shimmer={1.2}
+                    glow={2.2}
+                    flowDirection="down"
+                    opacity={0.85}
+                    mouseInteraction={true}
+                    mouseStrength={1.2}
+                    mouseRadius={0.35}
+                    mouseDampening={0.12}
+                />
+                {/* Subtle dark vignette overlay for contrast and legibility */}
+                <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80 pointer-events-none" />
+            </div>
+
+            <div className="relative z-10 w-full">
                 <TechNav />
 
-                <main className="relative z-10 pt-24 md:pt-32 pb-24 px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto flex flex-col gap-12 sm:gap-16">
+                <main className="pt-24 md:pt-32 pb-24 px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto flex flex-col gap-12 sm:gap-16">
                     
                     {/* Header */}
                     <div className="flex flex-col gap-4 max-w-3xl">
@@ -440,7 +464,7 @@ const ContactPage = () => {
                 </main>
 
                 <Footer />
-            </ProjectPattern>
+            </div>
         </div>
     );
 };

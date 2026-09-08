@@ -1,326 +1,198 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { supabase } from "@/integrations/supabase/client";
-import { useRealtimeRefetch } from "@/hooks/useRealtimeRefetch";
-import { toast } from "@/hooks/use-toast";
 
-const COOKIE_VOTER = "sw_voter";
-const COOKIE_VOTE_TIME = "sw_last_vote_time";
-const LS_KEY = "sw_voter_id";
+const COOKIE_VOTE_STATE = "sw_voter_has_voted";
+const COOKIE_COUNT = "sw_vote_count";
 const LS_VOTE_STATE = "sw_voter_has_voted";
 const LS_COUNT_KEY = "sw_local_vote_count";
-const LS_LAST_VOTE_TIME = "sw_last_vote_timestamp";
-const COOLDOWN_24H_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+const BASE_COUNT = 1;
 
-function readVoterId(): string {
-  const fromCookie = typeof document !== "undefined"
-    ? document.cookie
-        .split("; ")
-        .find((r) => r.startsWith(COOKIE_VOTER + "="))
-        ?.split("=")[1]
-    : "";
-  return fromCookie || localStorage.getItem(LS_KEY) || "";
+function readCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith(name + "="));
+  return match ? match.split("=")[1] : null;
 }
 
-function ensureVoterId(): string {
-  let id = readVoterId();
-  if (!id) {
-    id = crypto.randomUUID();
-    const oneYear = 60 * 60 * 24 * 365;
-    if (typeof document !== "undefined") {
-      document.cookie = `${COOKIE_VOTER}=${id}; path=/; max-age=${oneYear}; SameSite=Lax`;
-    }
-    localStorage.setItem(LS_KEY, id);
-  }
-  return id;
+function writeCookie(name: string, value: string, days = 365) {
+  if (typeof document === "undefined") return;
+  const maxAge = days * 24 * 60 * 60;
+  document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; SameSite=Lax`;
 }
 
-function getLastVoteTime(): number {
-  let time = 0;
+function getStoredVoteState(): boolean {
   try {
-    const lsTime = localStorage.getItem(LS_LAST_VOTE_TIME);
-    if (lsTime) time = parseInt(lsTime, 10) || 0;
+    const ls = localStorage.getItem(LS_VOTE_STATE);
+    if (ls !== null) return ls === "true";
   } catch {}
-
-  if (!time && typeof document !== "undefined") {
-    const cookieTime = document.cookie
-      .split("; ")
-      .find((r) => r.startsWith(COOKIE_VOTE_TIME + "="))
-      ?.split("=")[1];
-    if (cookieTime) time = parseInt(cookieTime, 10) || 0;
-  }
-  return time;
+  const cookie = readCookie(COOKIE_VOTE_STATE);
+  return cookie === "true";
 }
 
-function recordVoteTime(timestamp: number) {
+function getStoredVoteCount(): number {
   try {
-    localStorage.setItem(LS_LAST_VOTE_TIME, timestamp.toString());
-    const oneDayInSec = 60 * 60 * 24;
-    if (typeof document !== "undefined") {
-      document.cookie = `${COOKIE_VOTE_TIME}=${timestamp}; path=/; max-age=${oneDayInSec}; SameSite=Lax`;
+    const ls = localStorage.getItem(LS_COUNT_KEY);
+    if (ls !== null) {
+      const parsed = parseInt(ls, 10);
+      if (!isNaN(parsed) && parsed >= 0) return parsed;
     }
   } catch {}
+  const cookie = readCookie(COOKIE_COUNT);
+  if (cookie) {
+    const parsed = parseInt(cookie, 10);
+    if (!isNaN(parsed) && parsed >= 0) return parsed;
+  }
+  return BASE_COUNT;
 }
 
-/** Read the exact vote count and state from database */
-async function fetchRemoteState(voterId: string): Promise<{ count: number; hasVoted?: boolean; lastVoteTime?: number }> {
-  // Try Edge Function first with voterId
+function saveVoteData(count: number, voted: boolean) {
   try {
-    const query = voterId ? `?voter_id=${encodeURIComponent(voterId)}` : "";
-    const { data } = await supabase.functions.invoke(`vote${query}`, {
-      method: "GET" as any,
-    } as any);
-    if (data && typeof data.count === "number") {
-      return {
-        count: data.count,
-        hasVoted: typeof data.hasVoted === "boolean" ? data.hasVoted : undefined,
-        lastVoteTime: typeof data.lastVoteTime === "number" ? data.lastVoteTime : undefined,
-      };
+    localStorage.setItem(LS_COUNT_KEY, count.toString());
+    localStorage.setItem(LS_VOTE_STATE, voted ? "true" : "false");
+  } catch {}
+  writeCookie(COOKIE_COUNT, count.toString());
+  writeCookie(COOKIE_VOTE_STATE, voted ? "true" : "false");
+}
+
+function playVoteSound(isUpvote: boolean) {
+  try {
+    const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    if (isUpvote) {
+      osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15);
+      gainNode.gain.setValueAtTime(0.04, audioCtx.currentTime);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.25);
+    } else {
+      osc.frequency.setValueAtTime(660, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(330, audioCtx.currentTime + 0.15);
+      gainNode.gain.setValueAtTime(0.03, audioCtx.currentTime);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.2);
     }
-  } catch { /* fall through */ }
-
-  // Aggregate-only fallback (no voter identifiers are exposed publicly)
-  try {
-    const { data, error } = await (supabase as any).rpc("get_vote_count");
-    if (!error && typeof data === "number") return { count: data };
-  } catch { /* fall through */ }
-
-  // Direct table count fallback
-  try {
-    const { count, error } = await supabase
-      .from("site_votes" as any)
-      .select("*", { count: "exact", head: true });
-    if (!error && typeof count === "number") return { count };
-  } catch { /* fall through */ }
-
-  return { count: -1 }; // signals "could not reach DB"
+  } catch {}
 }
 
 const UpvoteButton = () => {
-  const [count, setCount] = useState<number>(() => {
-    const cached = localStorage.getItem(LS_COUNT_KEY);
-    return cached ? parseInt(cached, 10) || 0 : 0;
-  });
-
-  const [voted, setVoted] = useState<boolean>(() => {
-    const lastVoteTime = getLastVoteTime();
-    return lastVoteTime > 0 && (Date.now() - lastVoteTime) < COOLDOWN_24H_MS;
-  });
-
-  const [busy, setBusy] = useState(false);
+  const [count, setCount] = useState<number>(() => getStoredVoteCount());
+  const [voted, setVoted] = useState<boolean>(() => getStoredVoteState());
   const [popKey, setPopKey] = useState(0);
   const reduce = useReducedMotion();
 
-  const checkCooldownStatus = useCallback(() => {
-    const lastVoteTime = getLastVoteTime();
-    const isWithin24h = lastVoteTime > 0 && (Date.now() - lastVoteTime) < COOLDOWN_24H_MS;
-    setVoted(isWithin24h);
-    localStorage.setItem(LS_VOTE_STATE, isWithin24h ? "true" : "false");
-    return isWithin24h;
+  const syncState = useCallback(() => {
+    const storedCount = getStoredVoteCount();
+    const storedVoted = getStoredVoteState();
+    setCount(storedCount);
+    setVoted(storedVoted);
   }, []);
 
-  const refresh = useCallback(async () => {
-    const voterId = readVoterId();
-    checkCooldownStatus();
-
-    const remoteState = await fetchRemoteState(voterId);
-
-    if (remoteState.count >= 0) {
-      // DB is reachable — use its count as authoritative source of truth
-      setCount(remoteState.count);
-      localStorage.setItem(LS_COUNT_KEY, remoteState.count.toString());
-    }
-
-    if (remoteState.lastVoteTime && remoteState.lastVoteTime > 0) {
-      recordVoteTime(remoteState.lastVoteTime);
-      checkCooldownStatus();
-    } else if (remoteState.hasVoted !== undefined) {
-      setVoted(remoteState.hasVoted);
-      localStorage.setItem(LS_VOTE_STATE, remoteState.hasVoted ? "true" : "false");
-    }
-  }, [checkCooldownStatus]);
-
   useEffect(() => {
-    refresh();
-
-    // Check cooldown expiration every 30 seconds
-    const interval = setInterval(checkCooldownStatus, 30000);
+    // Cross-tab synchronization via BroadcastChannel
+    let channel: BroadcastChannel | null = null;
+    try {
+      if (typeof BroadcastChannel !== "undefined") {
+        channel = new BroadcastChannel("sw_vote_channel");
+        channel.onmessage = (event) => {
+          if (event.data) {
+            if (typeof event.data.count === "number") setCount(event.data.count);
+            if (typeof event.data.voted === "boolean") setVoted(event.data.voted);
+          }
+        };
+      }
+    } catch {}
 
     const handleVoteChange = (e: CustomEvent) => {
       if (e.detail) {
-        if (typeof e.detail.count === "number") {
-          setCount(e.detail.count);
-          localStorage.setItem(LS_COUNT_KEY, String(e.detail.count));
-        }
+        if (typeof e.detail.count === "number") setCount(e.detail.count);
         if (typeof e.detail.voted === "boolean") setVoted(e.detail.voted);
       } else {
-        refresh();
+        syncState();
       }
     };
 
     window.addEventListener("site-vote-changed" as any, handleVoteChange);
-    window.addEventListener("storage", refresh);
-
-    // Supabase Realtime broadcast channel — syncs count across ALL users instantly
-    const broadcastChannel = supabase.channel('vote-sync');
-    broadcastChannel
-      .on('broadcast', { event: 'vote-update' }, (payload: any) => {
-        if (payload?.payload?.count != null) {
-          const newCount = payload.payload.count;
-          setCount(newCount);
-          localStorage.setItem(LS_COUNT_KEY, String(newCount));
-        }
-      })
-      .subscribe();
+    window.addEventListener("storage", syncState);
 
     return () => {
-      clearInterval(interval);
       window.removeEventListener("site-vote-changed" as any, handleVoteChange);
-      window.removeEventListener("storage", refresh);
-      supabase.removeChannel(broadcastChannel);
+      window.removeEventListener("storage", syncState);
+      if (channel) channel.close();
     };
-  }, [refresh, checkCooldownStatus]);
+  }, [syncState]);
 
-  // Also subscribe to postgres_changes as a fallback for when broadcast misses
-  useRealtimeRefetch(["site_votes"], refresh);
+  const toggle = () => {
+    const isCurrentlyVoted = voted;
 
-  const toggle = async () => {
-    if (busy) return;
+    if (!isCurrentlyVoted) {
+      // 1. Upvote (+1)
+      const newCount = count + 1;
+      setCount(newCount);
+      setVoted(true);
+      setPopKey((k) => k + 1);
+      saveVoteData(newCount, true);
 
-    const lastVoteTime = getLastVoteTime();
-    const timePassed = Date.now() - lastVoteTime;
-    const isCooldownActive = lastVoteTime > 0 && timePassed < COOLDOWN_24H_MS;
-
-    // Strict 24-hour rate limit check
-    if (isCooldownActive) {
-      const remainingMs = COOLDOWN_24H_MS - timePassed;
-      const remainingHours = Math.floor(remainingMs / (1000 * 60 * 60));
-      const remainingMins = Math.ceil((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
-
-      toast({
-        title: "24-Hour Upvote Limit",
-        description: `You can only upvote once every 24 hours. Next vote available in ${remainingHours}h ${remainingMins}m.`,
-      });
+      playVoteSound(true);
 
       window.dispatchEvent(
         new CustomEvent("trigger-hud-alert", {
           detail: {
-            title: "24H_LIMIT_ACTIVE",
-            desc: `UPVOTE COOLDOWN ACTIVE. TRY AGAIN IN ${remainingHours}H ${remainingMins}M.`,
+            title: "NETWORK_BOOST",
+            desc: "MAIN ENCRYPTION SCORE NOMINATED (+1 UPVOTE).",
           },
         })
       );
-      return;
-    }
 
-    setBusy(true);
-    const voterId = ensureVoterId();
-    const now = Date.now();
+      window.dispatchEvent(
+        new CustomEvent("site-vote-changed", {
+          detail: { count: newCount, voted: true },
+        })
+      );
 
-    // Audio feedback
-    try {
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gainNode = audioCtx.createGain();
-      osc.connect(gainNode);
-      gainNode.connect(audioCtx.destination);
-
-      osc.frequency.setValueAtTime(500, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.15);
-      gainNode.gain.setValueAtTime(0.03, audioCtx.currentTime);
-
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.3);
-    } catch (e) {}
-
-    window.dispatchEvent(
-      new CustomEvent("trigger-hud-alert", {
-        detail: {
-          title: "NETWORK_BOOST",
-          desc: "MAIN ENCRYPTION SCORE NOMINATED (+1 UPVOTE).",
-        },
-      })
-    );
-
-    // Optimistic: show +1 immediately, mark voted, record cooldown timestamp
-    const optimisticCount = count + 1;
-    setVoted(true);
-    setCount(optimisticCount);
-    setPopKey((k) => k + 1);
-    recordVoteTime(now);
-    localStorage.setItem(LS_VOTE_STATE, "true");
-    localStorage.setItem(LS_COUNT_KEY, optimisticCount.toString());
-
-    window.dispatchEvent(
-      new CustomEvent("site-vote-changed", {
-        detail: { count: optimisticCount, voted: true },
-      })
-    );
-
-    // Write to database and then sync count from the authoritative source
-    try {
-      const { data, error } = await supabase.functions.invoke("vote", {
-        method: "POST",
-        body: { voter_id: voterId },
-      } as any);
-
-      if (data) {
-        if (data.error === "cooldown_active" || data.remainingMs) {
-          if (typeof data.lastVoteTime === "number") {
-            recordVoteTime(data.lastVoteTime);
-          }
-          if (typeof data.count === "number") {
-            setCount(data.count);
-            localStorage.setItem(LS_COUNT_KEY, data.count.toString());
-          }
-          setVoted(true);
-          return;
-        }
-
-        if (typeof data.count === "number") {
-          // Edge Function returned the real DB count — use it
-          setCount(data.count);
-          localStorage.setItem(LS_COUNT_KEY, data.count.toString());
-          window.dispatchEvent(
-            new CustomEvent("site-vote-changed", { detail: { count: data.count, voted: true } })
-          );
-          // Broadcast to all other connected users
-          supabase.channel('vote-sync').send({
-            type: 'broadcast',
-            event: 'vote-update',
-            payload: { count: data.count },
-          }).catch(() => {});
-        }
-      } else {
-        // Edge Function returned no count — re-read the aggregate count
-        const remoteState = await fetchRemoteState(voterId);
-        if (remoteState.count >= 0) {
-          setCount(remoteState.count);
-          localStorage.setItem(LS_COUNT_KEY, remoteState.count.toString());
-          window.dispatchEvent(
-            new CustomEvent("site-vote-changed", { detail: { count: remoteState.count, voted: true } })
-          );
-          // Broadcast to all other connected users
-          supabase.channel('vote-sync').send({
-            type: 'broadcast',
-            event: 'vote-update',
-            payload: { count: remoteState.count },
-          }).catch(() => {});
-        }
-      }
-    } catch (err) {
-      console.warn("Vote write notice:", err);
       try {
-        const remoteState = await fetchRemoteState(voterId);
-        if (remoteState.count >= 0) {
-          setCount(remoteState.count);
-          localStorage.setItem(LS_COUNT_KEY, remoteState.count.toString());
+        if (typeof BroadcastChannel !== "undefined") {
+          const channel = new BroadcastChannel("sw_vote_channel");
+          channel.postMessage({ count: newCount, voted: true });
+          channel.close();
         }
-      } catch (dbErr) {
-        console.warn("Direct DB fallback:", dbErr);
-      }
-    } finally {
-      setBusy(false);
+      } catch {}
+    } else {
+      // 2. Unvote (-1)
+      const newCount = Math.max(0, count - 1);
+      setCount(newCount);
+      setVoted(false);
+      setPopKey((k) => k + 1);
+      saveVoteData(newCount, false);
+
+      playVoteSound(false);
+
+      window.dispatchEvent(
+        new CustomEvent("trigger-hud-alert", {
+          detail: {
+            title: "VOTE_WITHDRAWN",
+            desc: "MAIN ENCRYPTION SCORE NOMINATION REMOVED (-1 UPVOTE).",
+          },
+        })
+      );
+
+      window.dispatchEvent(
+        new CustomEvent("site-vote-changed", {
+          detail: { count: newCount, voted: false },
+        })
+      );
+
+      try {
+        if (typeof BroadcastChannel !== "undefined") {
+          const channel = new BroadcastChannel("sw_vote_channel");
+          channel.postMessage({ count: newCount, voted: false });
+          channel.close();
+        }
+      } catch {}
     }
   };
 
@@ -328,28 +200,29 @@ const UpvoteButton = () => {
     <motion.button
       type="button"
       onClick={toggle}
-      disabled={busy}
       aria-pressed={voted}
-      aria-label={voted ? "Upvoted (24h cooldown active)" : "Upvote Sowmiyan"}
+      aria-label={voted ? "Remove upvote" : "Upvote Sowmiyan"}
+      title={voted ? "Click to remove your upvote" : "Click to upvote"}
       whileHover={reduce ? undefined : { scale: 1.05 }}
       whileTap={reduce ? undefined : { scale: 0.94 }}
-      className={`group inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 border font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] rounded-full transition-colors select-none ${
+      className={`group inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 border font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] rounded-full transition-all duration-200 select-none cursor-pointer ${
         voted
-          ? "bg-red-600 border-red-600 text-white shadow-[0_0_20px_rgba(220,38,38,0.4)]"
-          : "bg-white/5 border-white/20 text-white/90 hover:border-red-500 hover:text-red-400"
+          ? "bg-red-600 border-red-600 text-white shadow-[0_0_20px_rgba(220,38,38,0.5)]"
+          : "bg-white/5 border-white/20 text-white/90 hover:border-red-500 hover:text-red-400 hover:bg-red-500/10"
       }`}
     >
       <motion.span
         key={popKey}
-        initial={reduce ? false : { scale: 0.6, rotate: -20 }}
+        initial={reduce ? false : { scale: 0.6, rotate: voted ? 0 : -20 }}
         animate={{ scale: 1, rotate: 0 }}
         transition={{ type: "spring", stiffness: 500, damping: 15 }}
         aria-hidden
+        className={voted ? "text-white" : "text-red-500 group-hover:scale-110 transition-transform"}
       >
         ▲
       </motion.span>
       <span className="font-bold tabular-nums">{count.toLocaleString()}</span>
-      <span className="hidden md:inline text-white/40 group-hover:text-current transition-colors">
+      <span className="hidden md:inline text-white/50 group-hover:text-current transition-colors">
         {voted ? "Voted" : "Upvote"}
       </span>
     </motion.button>
@@ -357,4 +230,3 @@ const UpvoteButton = () => {
 };
 
 export default UpvoteButton;
-

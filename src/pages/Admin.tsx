@@ -80,7 +80,7 @@ const Admin = () => {
         return false;
     }, [hiddenIds, savedHiddenIds, homeFeatured, savedHomeFeatured, pageFeatured, savedPageFeatured]);
 
-    const loadData = async (forceRefresh = false) => {
+    const loadData = async (forceRefresh = true) => {
         setLoading(true);
         try {
             const [repoData, hiddenList, homeList, pageList, skillRes, settingsRes] = await Promise.all([

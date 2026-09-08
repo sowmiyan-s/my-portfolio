@@ -70,7 +70,12 @@
 
   /* Custom cursor only on precise pointer (desktop > 1024px). Mobile/touch keeps native cursor. */
   html, body {
-    cursor: url('/cursor/frame_0_64x64.png') 10 3, auto;
+    cursor: url('/cursor/angry-cursor-32.png') 1 0, url('/cursor/angry-cursor.png') 2 0, auto;
+  }
+
+  /* Interactive element cursor fallback (desktop overrides to none) */
+  a, button, [role="button"], .cursor-pointer {
+    cursor: url('/cursor/angry-cursor-32.png') 1 0, url('/cursor/angry-cursor.png') 2 0, pointer;
   }
 
   @media (hover: hover) and (pointer: fine) and (min-width: 1025px) {
@@ -83,6 +88,21 @@
     *, *::before, *::after, html, body {
       cursor: auto !important;
     }
+  }
+
+  @keyframes cursor-click-ripple {
+    0% {
+      transform: scale(0.2);
+      opacity: 0.85;
+    }
+    100% {
+      transform: scale(1.6);
+      opacity: 0;
+    }
+  }
+
+  .cursor-click-ripple {
+    animation: cursor-click-ripple 0.35s cubic-bezier(0, 0, 0.2, 1) forwards;
   }
 
   body {

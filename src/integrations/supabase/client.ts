@@ -2,8 +2,11 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
+const DEFAULT_SUPABASE_URL = "https://mutwfasmwpmbtntqxpun.supabase.co";
+const DEFAULT_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11dHdmYXNtd3BtYnRudHF4cHVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MjY3OTgsImV4cCI6MjA5MDEwMjc5OH0.JoJeUnec5N9YzCwWTiYYxsGysU1_-NXPHt9L2urWSYU";
+
+const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined) || DEFAULT_SUPABASE_URL;
+const SUPABASE_PUBLISHABLE_KEY = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) || DEFAULT_SUPABASE_ANON_KEY;
 
 function isNewSupabaseApiKey(value?: string): boolean {
   return !!value && (value.startsWith('sb_publishable_') || value.startsWith('sb_secret_'));
@@ -54,6 +57,7 @@ function createStubSupabaseClient() {
 
   return {
     from: () => createQueryBuilder(),
+    rpc: async () => ({ data: null, error: null }),
     auth: {
       getSession: async () => ({ data: { session: null }, error: null }),
     },
